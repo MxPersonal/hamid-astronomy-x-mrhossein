@@ -1,0 +1,100 @@
+import type { MediaCategory, MediaItem } from "@/types/media";
+
+export const mediaCategories: Array<"همه" | MediaCategory> = [
+  "همه",
+  "سحابی‌ها",
+  "کهکشان‌ها",
+  "منظومه شمسی",
+  "ماه",
+  "ویدیوها",
+];
+
+export const initialMedia: MediaItem[] = [
+  {
+    id: "cosmic-rift",
+    title: "سکوتِ میان ستاره‌ها",
+    description:
+      "در قلب این سحابی جوان، ستون‌های عظیم گاز و غبار زیر تابش ستاره‌های تازه‌متولدشده شکل می‌گیرند؛ نمایی از زایش آرام نور در تاریکی.",
+    type: "image",
+    category: "سحابی‌ها",
+    image: "/images/cosmic-rift.png",
+    capturedAt: "۲۱ تیر ۱۴۰۵",
+    views: 24800,
+    likes: 1842,
+    featured: true,
+    published: true,
+    createdAt: "2026-07-12T18:30:00.000Z",
+  },
+  {
+    id: "ringed-world",
+    title: "آن‌سوی حلقه‌ها",
+    description:
+      "تصویری هنری و علمی از یک غول گازی دوردست؛ جایی که حلقه‌های یخی، آسمان یک قمر خاموش را از افق تا افق می‌شکافند.",
+    type: "image",
+    category: "منظومه شمسی",
+    image: "/images/ringed-world.png",
+    capturedAt: "۰۸ مرداد ۱۴۰۵",
+    views: 18300,
+    likes: 1264,
+    published: true,
+    createdAt: "2026-07-30T12:00:00.000Z",
+  },
+  {
+    id: "deep-space-film",
+    title: "سفر به ژرفای کیهان",
+    description:
+      "از مرکز راه شیری تا سحابی کارینا؛ سفری تصویری میان ساختارهایی که میلیون‌ها سال نوری از ما فاصله دارند.",
+    type: "video",
+    category: "ویدیوها",
+    image: "/images/cosmic-rift.png",
+    videoUrl: "https://www.youtube.com/embed/eoZZ7kMwJ0c?rel=0",
+    duration: "۰۲:۱۴",
+    capturedAt: "۱۵ خرداد ۱۴۰۵",
+    views: 32100,
+    likes: 2319,
+    published: true,
+    createdAt: "2026-06-05T09:15:00.000Z",
+  },
+  {
+    id: "lunar-terminator",
+    title: "لبه‌ی روشن ماه",
+    description:
+      "در امتداد خط پایان شب و روز، سایه‌های کشیده عمق دهانه‌های باستانی ماه را آشکار می‌کنند.",
+    type: "image",
+    category: "ماه",
+    image: "/images/lunar-highlands.png",
+    capturedAt: "۲۹ اردیبهشت ۱۴۰۵",
+    views: 9700,
+    likes: 684,
+    published: true,
+    createdAt: "2026-05-19T22:40:00.000Z",
+  },
+  {
+    id: "violet-nebula",
+    title: "ابرهای بنفش آفرینش",
+    description:
+      "رشته‌های یونیزه‌ی گاز در برابر زمینه‌ی تاریک فضا؛ تصویری که مقیاس بی‌انتهای زایش ستارگان را روایت می‌کند.",
+    type: "image",
+    category: "کهکشان‌ها",
+    image: "/images/cosmic-rift.png",
+    capturedAt: "۱۲ فروردین ۱۴۰۵",
+    views: 15400,
+    likes: 1037,
+    published: true,
+    createdAt: "2026-04-01T16:20:00.000Z",
+  },
+  {
+    id: "ice-moon",
+    title: "طلوع بر فراز قمر یخی",
+    description:
+      "افقی یخ‌زده زیر نور سرد سیاره‌ی مادر؛ چشم‌اندازی فرضی از مرزهای دور یک منظومه‌ی ناشناخته.",
+    type: "image",
+    category: "منظومه شمسی",
+    image: "/images/ringed-world.png",
+    capturedAt: "۰۳ اسفند ۱۴۰۴",
+    views: 12800,
+    likes: 923,
+    published: false,
+    createdAt: "2026-02-22T08:05:00.000Z",
+  },
+];
