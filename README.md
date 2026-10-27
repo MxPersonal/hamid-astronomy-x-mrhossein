@@ -111,6 +111,38 @@ Never commit populated `.env.local` files. Keep admin secrets server-only (no `N
 
 No explicit LICENSE file was found in this repository at documentation time. Do **not** assume redistribution or commercial reuse rights without permission from the repository owner.
 
+## 🛰️ From prototype to shared observatory | مسیر توسعه
+
+This repository intentionally separates a **finished visual interaction** from a **production publishing system**.
+
+| Capability | In this repository | Production-grade next step |
+|:--|:--|:--|
+| Discovery | Searchable gallery and media viewer | Cross-browser accessibility testing |
+| Initial archive | Seed media in `src/data/media.ts` | Verified provenance and metadata |
+| Content edits | `use-media-library` + browser LocalStorage | Authenticated server-side CRUD |
+| Authentication | Protected admin session | Role-based permissions on every write |
+| Counters | Demo/local values | Genuine analytics pipeline |
+| Assets | Included local images and media URLs | Managed storage, moderation and backups |
+
+### 🔭 Editorial standards
+
+When publishing actual astrophotography, record the author, capture date, equipment, image-processing context, source and licensing permission. Keep artistic illustrations, simulations and observational photographs clearly differentiated. The seed descriptions and counts in the repository should remain labeled *demonstration content* until independently verified.
+
+### ✅ Review before a release
+
+~~~bash
+npm run lint
+npm run build
+~~~
+
+- [ ] Check the gallery and modal on mobile and desktop, including keyboard focus and dismissal.
+- [ ] Search by Persian title, description and category; confirm empty-result behavior.
+- [ ] Test sign-in rejection, signed-cookie expiration and logout.
+- [ ] Confirm published/unpublished UI behavior and understand that local edits do **not** synchronize to other visitors.
+- [ ] Do not advertise local counters as verified public viewing statistics.
+
+**Data safety:** exporting, resetting or clearing browser data can affect locally created entries. A shared astronomical archive requires a real backend, durable media storage and documented editorial ownership.
+
 <div align="center">
 
 **SOHA · Every frame opens another universe.** ✨
