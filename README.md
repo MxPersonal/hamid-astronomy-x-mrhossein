@@ -1,36 +1,118 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<div align="center">
 
-## Getting Started
+<img src="./public/images/cosmic-rift.png" alt="سُها | نمایی از گالری تصویری کیهان" width="100%" />
 
-First, run the development server:
+# سُها · SOHA
+### Cosmic Archive / روایت بی‌کران
 
-```bash
+**جهان، قاب به قاب.** 🌌
+
+گالری تصویری و ویدیویی نجوم با تجربه‌ای سینمایی، جست‌وجوی فارسی و فضای مدیریت اختصاصی.
+
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=nextdotjs)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-149ECA?logo=react)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+![Content storage](https://img.shields.io/badge/Content-Browser%20LocalStorage-7c3aed)
+
+</div>
+
+---
+
+## 🔭 آشنایی با سُها | About
+
+**سُها (SOHA)** تجربه‌ای فارسی برای کشف تصاویر، روایت‌ها و ویدیوهای نجومی است؛ یک آرشیو بصری که میان سحابی‌ها، کهکشان‌ها، منظومه شمسی و ماه حرکت می‌کند. صفحه اصلی از تصویری شاخص آغاز می‌شود و به گالری جست‌وجوپذیر و قابل فیلتر می‌رسد.
+
+**English:** SOHA is a Persian-first astronomy media-gallery prototype with a cinematic hero, searchable categories, a media viewer and a protected admin interface.
+
+## ✨ What you can explore
+
+| بخش | تجربه |
+|:--|:--|
+| 🌠 **نمای شاخص** | Hero تصویری با هویت بصری فضایی |
+| 🔎 **جست‌وجو** | فیلتر عنوان، توضیحات و دسته‌بندی به زبان فارسی |
+| 🪐 **دسته‌بندی‌ها** | سحابی‌ها، کهکشان‌ها، منظومه شمسی، ماه و ویدیوها |
+| 🎞️ **مشاهده رسانه** | کارت تصویر/ویدیو و نمایش جزئیات در Modal |
+| ♥️ **پسندیدن** | شمارنده لایک در داده‌های مرورگر |
+| 🔒 **ورود مدیر** | `/admin/login` با اطلاعات مدیریتی سمت سرور و Cookie امضاشده |
+| 🗃️ **داشبورد محتوا** | افزودن و حذف رسانه، انتشار/عدم انتشار و نمایش آمار محلی |
+
+## 🖼️ Gallery preview
+
+<div align="center">
+  <img src="./public/images/ringed-world.png" alt="سیاره حلقه‌دار در مجموعه سُها" width="48%" />
+  <img src="./public/images/lunar-highlands.png" alt="سطح ماه در مجموعه سُها" width="48%" />
+</div>
+
+> تصاویر و اعداد اولیه در `src/data/media.ts` داده‌های نمایشی/بذر پروژه هستند. آن‌ها را **مستندات رصد واقعی، آمار بازدید حقیقی، یا تصاویر ثبت‌شده توسط یک عکاس مشخص** تلقی نکنید، مگر منشأ آن‌ها جداگانه تأیید شود.
+
+## 🧱 Tech stack
+
+- **Framework:** Next.js 16 (App Router), React 19, TypeScript.
+- **Design:** Tailwind CSS 4, custom global styles, Lucide iconography.
+- **Content state:** React hooks with `window.localStorage`.
+- **Authentication:** Server-side admin credentials and HMAC-signed `HttpOnly` cookie.
+
+~~~text
+src/
+├── app/
+│   ├── page.tsx              # Public gallery
+│   ├── admin/                # Protected editor / sign-in
+│   └── api/admin/            # Login / logout handlers
+├── components/               # Gallery, cards, media modal, admin UI
+├── data/media.ts             # Initial demo content
+├── hooks/use-media-library.ts
+├── lib/admin-auth.ts         # Admin session handling
+└── types/media.ts
+~~~
+
+## ⚡ Getting started
+
+~~~bash
+git clone https://github.com/MxPersonal/hamid-astronomy-x-mrhossein.git
+cd hamid-astronomy-x-mrhossein
+npm install
+cp .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+~~~
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`. Before accessing the admin area, replace the example credentials with your **own strong secrets**.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Required for admin | Purpose |
+|:--|:--:|:--|
+| `ADMIN_USERNAME` | ✓ | Administrator username |
+| `ADMIN_PASSWORD` | ✓ | Unique password, normally at least 12 characters |
+| `ADMIN_SESSION_SECRET` | ✓ | Random secret of at least 48 characters |
+| `ALLOW_WEAK_ADMIN_PASSWORD` | No | Keep `false` outside isolated local tests |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**Available scripts:** `npm run dev`, `npm run build`, `npm run start`, `npm run lint`.
 
-## Learn More
+## ⚠️ Persistence and production limitation
 
-To learn more about Next.js, take a look at the following resources:
+The current `use-media-library` hook persists edits in **the browser's LocalStorage**, initialized from `src/data/media.ts`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- New items and likes are **not synchronized between users, devices, or browsers**.
+- Admin changes in one browser are **not a production CMS publication** for other visitors.
+- Clearing site data or switching browsers can remove locally edited content.
+- Media uploads are not backed by a centralized storage or database in this version.
+- Counters shown from initial content are sample data, **not verified analytics**.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+For a genuinely multi-user public archive, add server-side CRUD, database persistence, media storage, authorization enforcement on every write, and real analytics. Until then, treat this repository as a polished **interactive gallery prototype**.
 
-## Deploy on Vercel
+## ☁️ Deployment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Import the GitHub repository into Vercel as a **Next.js** project; configure admin environment variables on Vercel **before** using the admin login. Pushes to the connected production branch can trigger automatic builds. Confirm page rendering and session behavior in your deployed environment; a successful build does not add shared content persistence.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🔐 Security notes
+
+Never commit populated `.env.local` files. Keep admin secrets server-only (no `NEXT_PUBLIC_` prefix), use HTTPS in production, and do not treat front-end visibility toggles as database authorization.
+
+## 📄 License & usage
+
+No explicit LICENSE file was found in this repository at documentation time. Do **not** assume redistribution or commercial reuse rights without permission from the repository owner.
+
+<div align="center">
+
+**SOHA · Every frame opens another universe.** ✨
+
+</div>
