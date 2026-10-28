@@ -2,8 +2,9 @@ import type { MediaItem } from "@/types/media";
 
 export const SITE_URL = "https://hamid-astronomy-x-mrhossein.vercel.app";
 
-export function mediaPermalink(id: MediaItem["id"]): string {
-  return `/gallery/${encodeURIComponent(id)}`;
+export function mediaPermalink(item: MediaItem | MediaItem["id"]): string {
+  const value = typeof item === "string" ? item : (item.seo?.slug || item.id);
+  return `/gallery/${encodeURIComponent(value)}`;
 }
 
 /** Return only publicly fetchable image URLs for crawlers and link previews. */
