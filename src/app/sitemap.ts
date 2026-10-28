@@ -9,8 +9,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const items = await getMediaItems();
   return [
     { url: SITE_URL + "/" },
-    ...items.map((item) => ({
-      url: new URL(mediaPermalink(item.id), SITE_URL).toString(),
+    ...items.filter((item) => item.seo?.indexable !== false).map((item) => ({
+      url: new URL(mediaPermalink(item), SITE_URL).toString(),
     })),
   ];
 }
