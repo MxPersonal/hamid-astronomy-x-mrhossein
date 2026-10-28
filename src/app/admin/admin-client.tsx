@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AdminDashboard } from "@/components/admin-dashboard";
 import type { MediaItem, NewMediaInput } from "@/types/media";
@@ -26,6 +26,41 @@ export function AdminClient({ initialItems, initialContent, initialNotifications
   const [content, setContent] = useState(initialContent);
   const [notifications, setNotifications] = useState(initialNotifications);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [legacyItems, setLegacyItems] = useState<Array<{ id: string; data: NewMediaInput }>>([]);
+  const [importingLegacy, setImportingLegacy] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("soha-media-library-v1");
+      if (!raw) return;
+      const parsed: unknown = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return;
+      const imported: string[] = JSON.parse(localStorage.getItem("hamid-astronomy-imported-ids-v1") || "[]");
+      const known = new Set([
+        "cosmic-rift", "ringed-world", "deep-space-film",
+        "lunar-terminator", "violet-nebula", "ice-moon",
+        ...imported,
+        ...initialItems.map((item) => item.id),
+      ]);
+      const remaining: Array<{ id: string; data: NewMediaInput }> = [];
+      for (const item of parsed) {
+        if (!item || typeof item !== "object" || typeof item.id !== "string" || known.has(item.id)) continue;
+        if (typeof item.title !== "string" || typeof item.description !== "string" || typeof item.image !== "string") continue;
+        remaining.push({
+          id: item.id,
+          data: {
+            title: item.title, description: item.description,
+            type: item.type === "video" ? "video" : "image",
+            category: item.category, image: item.image,
+            videoUrl: item.videoUrl,
+            capturedAt: typeof item.capturedAt === "string" ? item.capturedAt : "",
+            published: item.published === true,
+          },
+        });
+      }
+      setLegacyItems(remaining);
+    } catch { /* No old browser library to migrate. */ }
+  }, [initialItems]);
 
   const refreshNotifications = async () => {
     const response = await api<{ notifications: CmsNotification[] }>("/api/cms/notifications", "GET");
@@ -61,6 +96,29 @@ export function AdminClient({ initialItems, initialContent, initialNotifications
     await api("/api/cms/notifications", "PATCH");
     await refreshNotifications();
   };
+  const importLegacy = async () => {
+    if (importingLegacy || !legacyItems.length) return;
+    if (!window.confirm(`انتقال ${legacyItems.length.toLocaleString("fa-IR")} رسانه از حافظه قدیمی این مرورگر به Neon انجام شود؟`)) return;
+    setImportingLegacy(true);
+    const completed = new Set<string>(JSON.parse(localStorage.getItem("hamid-astronomy-imported-ids-v1") || "[]"));
+    let failures = 0;
+    try {
+      for (const original of legacyItems) {
+        try {
+          const { item } = await api<{ item: MediaItem }>("/api/cms/media", "POST", original.data);
+          setItems((current) => [item, ...current]);
+          completed.add(original.id);
+          localStorage.setItem("hamid-astronomy-imported-ids-v1", JSON.stringify([...completed]));
+        } catch { failures += 1; }
+      }
+      setLegacyItems((current) => current.filter((item) => !completed.has(item.id)));
+      await refreshNotifications().catch(() => {});
+      window.alert(failures
+        ? `محتوای قابل انتقال منتقل شد؛ ${failures} مورد به‌دلیل محدودیت فرمت یا حجم منتقل نشد.`
+        : "محتواهای قدیمی به پایگاه داده Neon منتقل شدند.");
+    } finally { setImportingLegacy(false); }
+  };
+
   const logout = async () => {
     if (loggingOut) return;
     setLoggingOut(true);
@@ -76,6 +134,8 @@ export function AdminClient({ initialItems, initialContent, initialNotifications
   return (
     <AdminDashboard
       items={items} content={content} notifications={notifications}
+      legacyCount={legacyItems.length} importingLegacy={importingLegacy}
+      onImportLegacy={() => void importLegacy()}
       onAdd={add} onEdit={edit} onDelete={remove} onTogglePublished={togglePublished}
       onSaveContent={saveContent} onReadNotifications={readNotifications}
       onLogout={() => void logout()} onViewSite={() => router.push("/")}

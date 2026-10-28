@@ -123,6 +123,8 @@ Open `http://localhost:3000`. Set the secrets in `.env.local` before using the C
 
 The existing published demo entries were imported into the initial Hamid Astronomy Neon database. On a brand-new database, add media through the CMS or import your own seed data.
 
+**Legacy browser data:** If the previous CMS stored media in `localStorage`, sign in **using that same browser and origin**. A one-time **«انتقال رسانه قدیمی»** button appears if custom items are detected. Review the count and approve the import. Old browser data is left intact. Items that exceed upload limits must be migrated manually.
+
 **Database tables:** `site_content` (editable text/URLs), `media_items` (gallery records and counters), `cms_notifications` (action history).
 
 ## 🎛️ CMS Guide

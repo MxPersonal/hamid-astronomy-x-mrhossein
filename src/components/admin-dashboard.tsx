@@ -17,6 +17,9 @@ interface Props {
   items: MediaItem[];
   content: SiteContent;
   notifications: CmsNotification[];
+  legacyCount: number;
+  importingLegacy: boolean;
+  onImportLegacy: () => void;
   onAdd: (input: NewMediaInput) => Promise<void>;
   onEdit: (id: string, input: NewMediaInput) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
@@ -28,7 +31,7 @@ interface Props {
 }
 
 export function AdminDashboard({
-  items, content, notifications, onAdd, onEdit, onDelete, onTogglePublished,
+  items, content, notifications, legacyCount, importingLegacy, onImportLegacy, onAdd, onEdit, onDelete, onTogglePublished,
   onSaveContent, onReadNotifications, onLogout, onViewSite,
 }: Props) {
   const [showPublish, setShowPublish] = useState(false);
@@ -134,7 +137,13 @@ export function AdminDashboard({
               <h1>مدیریت {content.brandName}</h1>
               <span>عکس‌ها، ویدیوها، نوشته‌ها و ظاهر محتوایی سایت را یکجا مدیریت کنید.</span>
             </div>
-            <button type="button" onClick={() => { setEditing(null); setShowPublish(true); }}><Plus size={19} /> انتشار محتوای جدید</button>
+            <div className="welcome-actions">
+              {legacyCount > 0 && <button type="button" className="legacy-import" disabled={importingLegacy}
+                onClick={onImportLegacy}>
+                {importingLegacy ? "در حال انتقال..." : `انتقال ${legacyCount.toLocaleString("fa-IR")} رسانه قدیمی`}
+              </button>}
+              <button type="button" onClick={() => { setEditing(null); setShowPublish(true); }}><Plus size={19} /> انتشار محتوای جدید</button>
+            </div>
           </section>
 
           <section className="stats-grid" id="analytics" aria-label="آمار کلی">

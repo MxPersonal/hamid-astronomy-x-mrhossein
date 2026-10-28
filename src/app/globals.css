@@ -1085,3 +1085,15 @@ a {
   .admin-shell .topbar-actions { gap: 3px; }
   .notifications-panel { left: -40px; }
 }
+
+/* One-time, opt-in migration of legacy browser-only media */
+.welcome-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.admin-shell .welcome-actions .legacy-import {
+  background: transparent; color: #d0c0ff; border: 1px solid rgba(201,184,255,.35);
+}
+.admin-shell .welcome-actions .legacy-import:hover { background: rgba(143,109,244,.17); }
+.admin-shell .welcome-actions .legacy-import:disabled { opacity: .6; }
+@media (max-width: 740px) {
+  .welcome-actions { flex-direction: column; align-items: stretch; }
+  .welcome-actions button { justify-content: center; }
+}
