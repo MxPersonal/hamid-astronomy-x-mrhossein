@@ -1245,3 +1245,32 @@ a {
   .admin-shell .category-manager-form { flex-direction: column; align-items: stretch; }
   .admin-shell .inline-category-form > div { flex-direction: column; }
 }
+
+
+/* SEO detail permalinks: keep the existing modal interaction intact. */
+.gallery-permalink {
+  position: absolute;
+  z-index: 4;
+  bottom: 14px;
+  left: 14px;
+  padding: 7px 10px;
+  border: 1px solid rgba(201,184,255,.5);
+  border-radius: 99px;
+  background: rgba(7,7,12,.72);
+  color: #ece3ff;
+  font-size: 10px;
+  backdrop-filter: blur(8px);
+}
+.gallery-permalink:hover, .gallery-permalink:focus-visible {
+  background: rgba(143,109,244,.65);
+}
+.media-modal-permalink {
+  display: inline-flex;
+  margin-top: 24px;
+  border: 1px solid rgba(201,184,255,.4);
+  border-radius: 99px;
+  padding: 10px 16px;
+  color: #c9b8ff;
+  font-size: 12px;
+}
+.media-modal-permalink:hover { background: rgba(143,109,244,.14); }
