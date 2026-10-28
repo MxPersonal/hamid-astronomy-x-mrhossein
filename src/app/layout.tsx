@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Vazirmatn } from "next/font/google";
-import { getSiteContent } from "@/lib/cms-db";
+import { SITE_DEFAULTS } from "@/lib/cms-content";
 import "./globals.css";
 
 const vazirmatn = Vazirmatn({
@@ -9,14 +9,11 @@ const vazirmatn = Vazirmatn({
   display: "swap",
 });
 
-export async function generateMetadata(): Promise<Metadata> {
-  const site = await getSiteContent();
-  return {
-    title: site.seoTitle || "Hamid Astronomy",
-    description: site.seoDescription,
-    applicationName: "Hamid Astronomy",
-  };
-}
+export const metadata: Metadata = {
+  title: SITE_DEFAULTS.seoTitle,
+  description: SITE_DEFAULTS.seoDescription,
+  applicationName: "Hamid Astronomy",
+};
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

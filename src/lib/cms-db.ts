@@ -5,12 +5,13 @@ import { SITE_DEFAULTS, type SiteContent, type CmsNotification } from "@/lib/cms
 import type { MediaItem, NewMediaInput } from "@/types/media";
 
 export function isDatabaseConfigured() {
-  return Boolean(process.env.DATABASE_URL);
+  return Boolean(process.env.HAMID_ASTRONOMY_DATABASE_URL || process.env.DATABASE_URL);
 }
 
 function db() {
-  if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is not configured");
-  return neon(process.env.DATABASE_URL);
+  const url = process.env.HAMID_ASTRONOMY_DATABASE_URL || process.env.DATABASE_URL;
+  if (!url) throw new Error("Hamid Astronomy database URL is not configured");
+  return neon(url);
 }
 
 function asMedia(row: Record<string, unknown>): MediaItem {

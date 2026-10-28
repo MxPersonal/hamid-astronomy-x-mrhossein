@@ -105,7 +105,7 @@ Open `http://localhost:3000`. Set the secrets in `.env.local` before using the C
 
 | Variable | Purpose |
 |---|---|
-| `DATABASE_URL` | Neon PostgreSQL pooled connection URL, server-side only |
+| `HAMID_ASTRONOMY_DATABASE_URL` | Preferred dedicated Neon pooled URL for this site |\n| `DATABASE_URL` | Fallback pooled URL for local setups |
 | `ADMIN_USERNAME` | Admin login username |
 | `ADMIN_PASSWORD` | Strong admin password, at least 12 characters |
 | `ADMIN_SESSION_SECRET` | Random HMAC signing secret, at least 48 characters |
@@ -117,7 +117,7 @@ Open `http://localhost:3000`. Set the secrets in `.env.local` before using the C
 
 1. Create a separate project in [Neon](https://console.neon.tech/), or use the existing Hamid Astronomy project.
 2. Run [`database/schema.sql`](database/schema.sql) in Neon's SQL Editor (idempotent schema creation).
-3. Copy the pooled PostgreSQL connection string into `DATABASE_URL`.
+3. Copy the pooled PostgreSQL connection string into `HAMID_ASTRONOMY_DATABASE_URL` (or `DATABASE_URL` locally).
 4. Set the same environment variable securely in Vercel for your deployment.
 5. Configure the three required admin credentials in Vercel and redeploy through your connected Git branch.
 
