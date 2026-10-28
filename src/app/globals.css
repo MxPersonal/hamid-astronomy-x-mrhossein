@@ -1289,3 +1289,15 @@ a {
   .seo-edit-grid { grid-template-columns: 1fr; }
   .seo-edit-panel { margin: 8px 14px 20px; padding: 16px; }
 }
+
+/* AEO/GEO editorial controls reuse existing CMS colors and typography. */
+.aeo-editor { margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(143,109,244,.25); display: grid; gap: 17px; }
+.aeo-editor h3 { margin: 0; font-size: 15px; font-weight: 600; color: #b9a5ff; }
+.aeo-editor .field-label { min-width: 0; }
+.aeo-field-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; color: #d5ccee; font-size: 13px; }
+.aeo-field-heading button { padding: 8px 13px; border: 1px solid rgba(143,109,244,.4); border-radius: 8px; color: #cab8ff; background: rgba(143,109,244,.08); font-size: 11px; }
+.aeo-field-heading button:disabled { opacity: .45; cursor: not-allowed; }
+.aeo-entry { padding: 15px; border: 1px solid rgba(143,109,244,.18); background: rgba(8,8,18,.18); border-radius: 11px; display: grid; gap: 12px; }
+.aeo-remove { justify-self: start; padding: 6px 10px; color: #eba5ad; border: 1px solid rgba(235,165,173,.32); border-radius: 7px; background: transparent; font-size: 11px; }
+.aeo-hint { color: #9b94ac; line-height: 2; font-size: 11px; }
+@media (max-width: 780px) { .aeo-entry { padding: 12px; } }
