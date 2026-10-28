@@ -52,6 +52,17 @@ export default async function MediaPage({ params }: Props) {
   const publishedAt = item.seo?.publishedAt;
   const sourceUrl = item.seo?.sourceUrl;
   const source = sourceUrl && sourceUrl.startsWith("https://") ? sourceUrl : undefined;
+  const conciseAnswer = item.seo?.answer.trim() || "";
+  const faqs = item.seo?.faqs ?? [];
+  const references = item.seo?.references ?? [];
+  const byline = item.seo?.authorName.trim() || "";
+  const visualLabels: Record<string, string> = {
+    observation: "عکس یا داده رصدی واقعی",
+    illustration: "تصویرسازی هنری",
+    simulation: "شبیه‌سازی علمی",
+    "ai-generated": "تصویر تولیدشده با هوش مصنوعی",
+  };
+  const visualLabel = item.seo?.visualKind ? visualLabels[item.seo.visualKind] : undefined;
   const pageEntity: Record<string, unknown> = {
     "@type": "WebPage", "@id": url, url,
     name: item.seo?.title || item.title, description, inLanguage: "fa-IR",
@@ -60,6 +71,11 @@ export default async function MediaPage({ params }: Props) {
   const mainEntity: Record<string, unknown> = item.type === "text" ? {
     "@type": "Article",
     headline: item.title, description,
+    ...(conciseAnswer ? { abstract: conciseAnswer } : {}),
+    ...(byline ? { author: { "@type": "Person", name: byline } } : {}),
+    ...(references.length ? { citation: references.map((ref) => ({
+      "@type": "CreativeWork", name: ref.title, url: ref.url,
+    })) } : {}),
     dateCreated: item.createdAt, inLanguage: "fa-IR",
     ...(publishedAt ? { datePublished: publishedAt } : {}),
     ...(source ? { citation: source } : {}),
@@ -68,6 +84,7 @@ export default async function MediaPage({ params }: Props) {
   } : item.type === "video" ? {
     "@type": "VideoObject",
     name: item.title, description,
+    ...(byline ? { creator: { "@type": "Person", name: byline } } : {}),
     dateCreated: item.createdAt,
     ...(publishedAt ? { uploadDate: publishedAt } : {}),
     ...(source ? { isBasedOn: source } : {}),
@@ -77,6 +94,7 @@ export default async function MediaPage({ params }: Props) {
   } : {
     "@type": "ImageObject",
     name: item.title, description, inLanguage: "fa-IR",
+    ...(byline ? { creator: { "@type": "Person", name: byline } } : {}),
     ...(source ? { isBasedOn: source } : {}),
     ...(image ? { contentUrl: image } : {}),
   };
@@ -130,12 +148,54 @@ export default async function MediaPage({ params }: Props) {
               )}
             </div>
           )}
+          {(conciseAnswer || byline || visualLabel) && (
+            <section className={styles.sciencePanel} aria-label="چکیده و شفافیت محتوا">
+              {conciseAnswer && (
+                <div>
+                  <h2 className={styles.sectionHeading}>پاسخ کوتاه</h2>
+                  <p className={styles.scienceText}>{conciseAnswer}</p>
+                </div>
+              )}
+              {(byline || visualLabel) && (
+                <div className={styles.provenance}>
+                  {byline && <p>تهیه‌کننده: {byline}</p>}
+                  {visualLabel && <p>نوع تصویر: {visualLabel}</p>}
+                  {publishedAt && <p>تاریخ انتشار: <time dateTime={publishedAt}>{publishedAt}</time></p>}
+                </div>
+              )}
+            </section>
+          )}
           {item.type === "text" && (
             <div className={styles.body}>
               {item.description.split(/\n\s*\n/).map((paragraph, index) =>
                 <p key={index}>{paragraph}</p>
               )}
             </div>
+          )}
+          {faqs.length > 0 && (
+            <section className={styles.sciencePanel} aria-labelledby="science-faq-heading">
+              <h2 id="science-faq-heading" className={styles.sectionHeading}>پرسش‌های متداول</h2>
+              <div className={styles.faqList}>
+                {faqs.map((faq, index) => (
+                  <div key={index} className={styles.faqItem}>
+                    <h3>{faq.question}</h3>
+                    <p>{faq.answer}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+          {references.length > 0 && (
+            <section className={styles.sciencePanel} aria-labelledby="science-source-heading">
+              <h2 id="science-source-heading" className={styles.sectionHeading}>منابع علمی و مطالعه بیشتر</h2>
+              <ul className={styles.referenceList}>
+                {references.map((ref, index) => (
+                  <li key={index}>
+                    <a href={ref.url} target="_blank" rel="noopener noreferrer">{ref.title}</a>
+                  </li>
+                ))}
+              </ul>
+            </section>
           )}
           {source && (
             <div className={styles.meta}>
