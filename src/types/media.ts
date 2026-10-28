@@ -2,6 +2,18 @@ export type MediaType = "image" | "video" | "text";
 
 export type MediaCategory = string;
 
+export interface MediaSeo {
+  slug: string;
+  title: string;
+  description: string;
+  altText: string;
+  shareImage: string;
+  sourceUrl: string;
+  indexable: boolean;
+  publishedAt: string;
+}
+
+
 export interface MediaItem {
   id: string;
   title: string;
@@ -17,6 +29,7 @@ export interface MediaItem {
   featured?: boolean;
   published: boolean;
   createdAt: string;
+  seo?: MediaSeo;
 }
 
 export interface NewMediaInput {
@@ -28,4 +41,5 @@ export interface NewMediaInput {
   videoUrl?: string;
   capturedAt: string;
   published: boolean;
+  seo?: MediaSeo;
 }
