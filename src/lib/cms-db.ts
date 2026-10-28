@@ -27,17 +27,23 @@ async function getSeoForId(id: string): Promise<MediaSeo> {
   catch { return { ...DEFAULT_MEDIA_SEO }; }
 }
 
-async function writeSeo(id: string, seo?: MediaSeo) {
-  if (!seo) return;
-  const key = seoKey(id), value = JSON.stringify(seo);
+async function writeSeo(id: string, seo?: MediaSeo): Promise<MediaSeo | undefined> {
+  if (!seo) return undefined;
+  const previous = await getSeoForId(id);
+  const aliases = new Set(previous.aliases ?? []);
+  if (previous.slug && previous.slug !== seo.slug) aliases.add(previous.slug);
+  aliases.delete(seo.slug);
+  const combined: MediaSeo = { ...seo, aliases: [...aliases].slice(-20) };
+  const key = seoKey(id), value = JSON.stringify(combined);
   await db()`INSERT INTO site_content (key, value, updated_at) VALUES (${key}, ${value}, now())
     ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()`;
+  return combined;
 }
 
 async function assertUniqueSeoSlug(id: string | null, slug?: string) {
   if (!slug) return;
   const items = await getMediaItems(true);
-  if (items.some((item) => item.id !== id && (item.id === slug || item.seo?.slug === slug))) {
+  if (items.some((item) => item.id !== id && (item.id === slug || item.seo?.slug === slug || item.seo?.aliases?.includes(slug)))) {
     throw new Error("SEO_SLUG_CONFLICT");
   }
 }
@@ -147,7 +153,7 @@ export async function getPublicMediaItem(idOrSlug: string): Promise<MediaItem | 
     return { ...item, seo: await getSeoForId(item.id) };
   }
   const items = await getMediaItems();
-  return items.find((item) => item.seo?.slug === idOrSlug) ?? null;
+  return items.find((item) => item.seo?.slug === idOrSlug || item.seo?.aliases?.includes(idOrSlug)) ?? null;
 }
 
 export async function getCmsNotifications(): Promise<CmsNotification[]> {
@@ -182,9 +188,9 @@ export async function createMedia(input: NewMediaInput): Promise<MediaItem> {
       VALUES (${id}, ${input.title}, ${input.description}, ${input.category},
         ${input.image}, ${input.capturedAt}, ${input.published})
       RETURNING *`;
-    await writeSeo(id, input.seo);
+    const savedSeo = await writeSeo(id, input.seo);
     await notify(input.published ? "نوشته جدید منتشر شد" : "پیش‌نویس نوشته ذخیره شد", input.title, "text");
-    return { ...asTextPost(rows[0]), seo: input.seo };
+    return { ...asTextPost(rows[0]), seo: savedSeo };
   }
   const id = crypto.randomUUID();
   const rows = await db()`INSERT INTO media_items
@@ -192,9 +198,9 @@ export async function createMedia(input: NewMediaInput): Promise<MediaItem> {
     VALUES (${id}, ${input.title}, ${input.description}, ${input.type}, ${input.category},
       ${input.image}, ${input.videoUrl || null}, ${input.capturedAt}, ${input.published}, false)
     RETURNING *`;
-  await writeSeo(id, input.seo);
+  const savedSeo = await writeSeo(id, input.seo);
   await notify(input.published ? "اثر جدید منتشر شد" : "پیش‌نویس تازه ذخیره شد", input.title, "media");
-  return { ...asMedia(rows[0]), seo: input.seo };
+  return { ...asMedia(rows[0]), seo: savedSeo };
 }
 
 export async function editMedia(id: string, input: NewMediaInput): Promise<MediaItem | null> {
@@ -207,9 +213,9 @@ export async function editMedia(id: string, input: NewMediaInput): Promise<Media
       published = ${input.published}
       WHERE id = ${id} RETURNING *`;
     if (!rows.length) return null;
-    await writeSeo(id, input.seo);
+    const savedSeo = await writeSeo(id, input.seo);
     await notify("نوشته ویرایش شد", input.title, "text");
-    return { ...asTextPost(rows[0]), seo: input.seo ?? await getSeoForId(id) };
+    return { ...asTextPost(rows[0]), seo: savedSeo ?? await getSeoForId(id) };
   }
   if (input.type === "text") return null;
   const rows = await db()`UPDATE media_items SET
@@ -218,9 +224,9 @@ export async function editMedia(id: string, input: NewMediaInput): Promise<Media
     captured_at = ${input.capturedAt}, published = ${input.published}
     WHERE id = ${id} RETURNING *`;
   if (!rows.length) return null;
-  await writeSeo(id, input.seo);
+  const savedSeo = await writeSeo(id, input.seo);
   await notify("محتوا ویرایش شد", input.title, "media");
-  return { ...asMedia(rows[0]), seo: input.seo ?? await getSeoForId(id) };
+  return { ...asMedia(rows[0]), seo: savedSeo ?? await getSeoForId(id) };
 }
 
 export async function deleteMedia(id: string): Promise<boolean> {
