@@ -28,7 +28,7 @@ export function MediaCard({ item, index, onOpen }: MediaCardProps) {
         {item.image ? (
           <MediaImage
             src={item.image}
-            alt={item.title}
+            alt={item.seo?.altText || item.title}
             sizes="(max-width: 680px) 100vw, (max-width: 1100px) 50vw, 33vw"
             className="gallery-image"
           />
@@ -69,7 +69,7 @@ export function MediaCard({ item, index, onOpen }: MediaCardProps) {
         </div>
       </button>
       <Link
-        href={mediaPermalink(item.id)}
+        href={mediaPermalink(item)}
         prefetch={false}
         className="gallery-permalink"
         aria-label={`صفحه مستقل: ${item.title}`}
