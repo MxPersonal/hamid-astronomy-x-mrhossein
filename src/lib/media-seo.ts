@@ -25,6 +25,7 @@ export function parseStoredMediaSeo(value: unknown): MediaSeo {
     sourceUrl: typeof data.sourceUrl === "string" ? data.sourceUrl : "",
     indexable: data.indexable !== false,
     publishedAt: typeof data.publishedAt === "string" ? data.publishedAt : "",
+    aliases: Array.isArray(data.aliases) ? data.aliases.filter((v): v is string => typeof v === "string" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(v)).slice(-20) : [],
   };
 }
 
