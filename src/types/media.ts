@@ -2,6 +2,18 @@ export type MediaType = "image" | "video" | "text";
 
 export type MediaCategory = string;
 
+export interface ScienceQuestion {
+  question: string;
+  answer: string;
+}
+
+export interface ScienceReference {
+  title: string;
+  url: string;
+}
+
+export type VisualKind = "unspecified" | "observation" | "illustration" | "simulation" | "ai-generated";
+
 export interface MediaSeo {
   slug: string;
   title: string;
@@ -11,6 +23,12 @@ export interface MediaSeo {
   sourceUrl: string;
   indexable: boolean;
   publishedAt: string;
+  /** Curated answer, not generated or inferred automatically. */
+  answer: string;
+  faqs: ScienceQuestion[];
+  references: ScienceReference[];
+  authorName: string;
+  visualKind: VisualKind;
   /** Historical slugs retained for permanent redirects. */
   aliases?: string[];
 }
