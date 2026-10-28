@@ -3,6 +3,7 @@ import { hasValidAdminSession } from "@/lib/admin-auth";
 import { isSameOriginRequest } from "@/lib/request-security";
 import { createMedia, editMedia, toggleMediaPublish, deleteMedia, siteCategoryExists } from "@/lib/cms-db";
 import type { MediaCategory, NewMediaInput } from "@/types/media";
+import { parseSeoInput } from "@/lib/media-seo";
 
 const MAX_REQUEST_BYTES = 4 * 1024 * 1024;
 
@@ -42,10 +43,12 @@ function parseMedia(data: unknown): NewMediaInput | null {
       else return null;
     } catch { return null; }
   }
+  const seo = x.seo === undefined ? undefined : parseSeoInput(x.seo);
+  if (seo === null) return null;
   return {
     title: x.title.trim(), description: x.description.trim(), type: x.type,
     category: x.category.trim() as MediaCategory,
-    image: x.image, videoUrl, capturedAt: x.capturedAt.trim(), published: x.published,
+    image: x.image, videoUrl, capturedAt: x.capturedAt.trim(), published: x.published, seo,
   };
 }
 
@@ -65,7 +68,9 @@ export async function POST(request: Request) {
     if (!input) return NextResponse.json({ error: "مشخصات محتوا نامعتبر است؛ برای نوشته فقط عنوان و متن لازم است" }, { status: 400 });
     if (!(await siteCategoryExists(input.category))) return NextResponse.json({ error: "دسته‌بندی انتخاب‌شده وجود ندارد؛ ابتدا آن را بسازید" }, { status: 400 });
     return NextResponse.json({ item: await createMedia(input) }, { status: 201 });
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && error.message === "SEO_SLUG_CONFLICT")
+      return NextResponse.json({ error: "این نشانی SEO قبلاً استفاده شده است" }, { status: 409 });
     return NextResponse.json({ error: "ثبت رسانه در پایگاه داده ناموفق بود" }, { status: 500 });
   }
 }
@@ -77,7 +82,9 @@ export async function PUT(request: Request) {
     if (!(await siteCategoryExists(input.category))) return NextResponse.json({ error: "دسته‌بندی انتخاب‌شده معتبر نیست" }, { status: 400 });
     const item = await editMedia(id, input);
     return item ? NextResponse.json({ item }) : NextResponse.json({ error: "محتوا پیدا نشد" }, { status: 404 });
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && error.message === "SEO_SLUG_CONFLICT")
+      return NextResponse.json({ error: "این نشانی SEO قبلاً استفاده شده است" }, { status: 409 });
     return NextResponse.json({ error: "ویرایش محتوا ناموفق بود" }, { status: 500 });
   }
 }
