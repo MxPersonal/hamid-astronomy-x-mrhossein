@@ -91,6 +91,24 @@ export async function getMediaItems(all = false): Promise<MediaItem[]> {
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
+/** Fetch one public record from Neon. Drafts and deleted records are never exposed. */
+export async function getPublicMediaItem(id: string): Promise<MediaItem | null> {
+  if (!id || id.length > 200) return null;
+
+  if (!isDatabaseConfigured()) {
+    return initialMedia.find((item) => item.id === id && item.published) ?? null;
+  }
+
+  const sql = db();
+  if (isTextPost(id)) {
+    const rows = await sql`SELECT * FROM text_posts WHERE id = ${id} AND published = true LIMIT 1`;
+    return rows.length ? asTextPost(rows[0]) : null;
+  }
+
+  const rows = await sql`SELECT * FROM media_items WHERE id = ${id} AND published = true LIMIT 1`;
+  return rows.length ? asMedia(rows[0]) : null;
+}
+
 export async function getCmsNotifications(): Promise<CmsNotification[]> {
   if (!isDatabaseConfigured()) return [];
   const rows = await db()`SELECT id, title, message, event_type, created_at, read_at FROM cms_notifications ORDER BY created_at DESC LIMIT 50`;
