@@ -1,10 +1,16 @@
 import type { MetadataRoute } from "next";
+import { getMediaItems } from "@/lib/cms-db";
+import { SITE_URL, mediaPermalink } from "@/lib/seo";
 
-export default function sitemap():
-  MetadataRoute.Sitemap {
+/** Always reflect the current public content in Neon, including unpublishing. */
+export const dynamic = "force-dynamic";
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const items = await getMediaItems();
   return [
-    {
-      url: "https://hamid-astronomy-x-mrhossein.vercel.app/",
-    },
+    { url: SITE_URL + "/" },
+    ...items.map((item) => ({
+      url: new URL(mediaPermalink(item.id), SITE_URL).toString(),
+    })),
   ];
 }
