@@ -2,7 +2,45 @@ import "server-only";
 import { neon } from "@neondatabase/serverless";
 import { initialMedia, mediaCategories } from "@/data/media";
 import { SITE_DEFAULTS, type SiteContent, type CmsNotification } from "@/lib/cms-content";
-import type { MediaItem, NewMediaInput } from "@/types/media";
+import type { MediaItem, MediaSeo, NewMediaInput } from "@/types/media";
+import { DEFAULT_MEDIA_SEO, SEO_KEY_PREFIX, parseStoredMediaSeo } from "@/lib/media-seo";
+
+function seoKey(id: string) { return SEO_KEY_PREFIX + id; }
+
+async function getSeoMap(): Promise<Map<string, MediaSeo>> {
+  const map = new Map<string, MediaSeo>();
+  if (!isDatabaseConfigured()) return map;
+  const rows = await db()`SELECT key, value FROM site_content WHERE key LIKE 'media-seo:%'`;
+  for (const row of rows) {
+    try {
+      map.set(String(row.key).slice(SEO_KEY_PREFIX.length), parseStoredMediaSeo(JSON.parse(String(row.value))));
+    } catch { /* Ignore malformed metadata while retaining the media record. */ }
+  }
+  return map;
+}
+
+async function getSeoForId(id: string): Promise<MediaSeo> {
+  if (!isDatabaseConfigured()) return { ...DEFAULT_MEDIA_SEO };
+  const rows = await db()`SELECT value FROM site_content WHERE key = ${seoKey(id)} LIMIT 1`;
+  if (!rows.length) return { ...DEFAULT_MEDIA_SEO };
+  try { return parseStoredMediaSeo(JSON.parse(String(rows[0].value))); }
+  catch { return { ...DEFAULT_MEDIA_SEO }; }
+}
+
+async function writeSeo(id: string, seo?: MediaSeo) {
+  if (!seo) return;
+  const key = seoKey(id), value = JSON.stringify(seo);
+  await db()`INSERT INTO site_content (key, value, updated_at) VALUES (${key}, ${value}, now())
+    ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()`;
+}
+
+async function assertUniqueSeoSlug(id: string | null, slug?: string) {
+  if (!slug) return;
+  const items = await getMediaItems(true);
+  if (items.some((item) => item.id !== id && (item.id === slug || item.seo?.slug === slug))) {
+    throw new Error("SEO_SLUG_CONFLICT");
+  }
+}
 
 export function isDatabaseConfigured() {
   return Boolean(process.env.HAMID_ASTRONOMY_DATABASE_URL || process.env.DATABASE_URL);
@@ -79,34 +117,37 @@ export async function getSiteContent(): Promise<SiteContent> {
 export async function getMediaItems(all = false): Promise<MediaItem[]> {
   if (!isDatabaseConfigured()) return initialMedia.filter((item) => all || item.published);
   const sql = db();
-  const [mediaRows, postRows] = await Promise.all([
+  const [mediaRows, postRows, seoMap] = await Promise.all([
     all
       ? sql`SELECT * FROM media_items ORDER BY created_at DESC, id DESC`
       : sql`SELECT * FROM media_items WHERE published = true ORDER BY created_at DESC, id DESC`,
     all
       ? sql`SELECT * FROM text_posts ORDER BY created_at DESC, id DESC`
       : sql`SELECT * FROM text_posts WHERE published = true ORDER BY created_at DESC, id DESC`,
+    getSeoMap(),
   ]);
   return [...mediaRows.map((row) => asMedia(row)), ...postRows.map((row) => asTextPost(row))]
+    .map((item) => ({ ...item, seo: seoMap.get(item.id) ?? { ...DEFAULT_MEDIA_SEO } }))
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 /** Fetch one public record from Neon. Drafts and deleted records are never exposed. */
-export async function getPublicMediaItem(id: string): Promise<MediaItem | null> {
-  if (!id || id.length > 200) return null;
-
+/** Resolve a public item by stable ID or optional editorial slug. */
+export async function getPublicMediaItem(idOrSlug: string): Promise<MediaItem | null> {
+  if (!idOrSlug || idOrSlug.length > 200) return null;
   if (!isDatabaseConfigured()) {
-    return initialMedia.find((item) => item.id === id && item.published) ?? null;
+    return initialMedia.find((item) => item.published && item.id === idOrSlug) ?? null;
   }
-
   const sql = db();
-  if (isTextPost(id)) {
-    const rows = await sql`SELECT * FROM text_posts WHERE id = ${id} AND published = true LIMIT 1`;
-    return rows.length ? asTextPost(rows[0]) : null;
+  const rows = idOrSlug.startsWith("text-")
+    ? await sql`SELECT * FROM text_posts WHERE id = ${idOrSlug} AND published = true LIMIT 1`
+    : await sql`SELECT * FROM media_items WHERE id = ${idOrSlug} AND published = true LIMIT 1`;
+  if (rows.length) {
+    const item = idOrSlug.startsWith("text-") ? asTextPost(rows[0]) : asMedia(rows[0]);
+    return { ...item, seo: await getSeoForId(item.id) };
   }
-
-  const rows = await sql`SELECT * FROM media_items WHERE id = ${id} AND published = true LIMIT 1`;
-  return rows.length ? asMedia(rows[0]) : null;
+  const items = await getMediaItems();
+  return items.find((item) => item.seo?.slug === idOrSlug) ?? null;
 }
 
 export async function getCmsNotifications(): Promise<CmsNotification[]> {
@@ -133,6 +174,7 @@ export async function updateSiteContent(key: keyof SiteContent, value: string) {
 }
 
 export async function createMedia(input: NewMediaInput): Promise<MediaItem> {
+  await assertUniqueSeoSlug(null, input.seo?.slug);
   if (input.type === "text") {
     const id = "text-" + crypto.randomUUID();
     const rows = await db()`INSERT INTO text_posts
@@ -140,8 +182,9 @@ export async function createMedia(input: NewMediaInput): Promise<MediaItem> {
       VALUES (${id}, ${input.title}, ${input.description}, ${input.category},
         ${input.image}, ${input.capturedAt}, ${input.published})
       RETURNING *`;
+    await writeSeo(id, input.seo);
     await notify(input.published ? "نوشته جدید منتشر شد" : "پیش‌نویس نوشته ذخیره شد", input.title, "text");
-    return asTextPost(rows[0]);
+    return { ...asTextPost(rows[0]), seo: input.seo };
   }
   const id = crypto.randomUUID();
   const rows = await db()`INSERT INTO media_items
@@ -149,11 +192,13 @@ export async function createMedia(input: NewMediaInput): Promise<MediaItem> {
     VALUES (${id}, ${input.title}, ${input.description}, ${input.type}, ${input.category},
       ${input.image}, ${input.videoUrl || null}, ${input.capturedAt}, ${input.published}, false)
     RETURNING *`;
+  await writeSeo(id, input.seo);
   await notify(input.published ? "اثر جدید منتشر شد" : "پیش‌نویس تازه ذخیره شد", input.title, "media");
-  return asMedia(rows[0]);
+  return { ...asMedia(rows[0]), seo: input.seo };
 }
 
 export async function editMedia(id: string, input: NewMediaInput): Promise<MediaItem | null> {
+  await assertUniqueSeoSlug(id, input.seo?.slug);
   if (isTextPost(id)) {
     if (input.type !== "text") return null;
     const rows = await db()`UPDATE text_posts SET
@@ -162,8 +207,9 @@ export async function editMedia(id: string, input: NewMediaInput): Promise<Media
       published = ${input.published}
       WHERE id = ${id} RETURNING *`;
     if (!rows.length) return null;
+    await writeSeo(id, input.seo);
     await notify("نوشته ویرایش شد", input.title, "text");
-    return asTextPost(rows[0]);
+    return { ...asTextPost(rows[0]), seo: input.seo ?? await getSeoForId(id) };
   }
   if (input.type === "text") return null;
   const rows = await db()`UPDATE media_items SET
@@ -172,8 +218,9 @@ export async function editMedia(id: string, input: NewMediaInput): Promise<Media
     captured_at = ${input.capturedAt}, published = ${input.published}
     WHERE id = ${id} RETURNING *`;
   if (!rows.length) return null;
+  await writeSeo(id, input.seo);
   await notify("محتوا ویرایش شد", input.title, "media");
-  return asMedia(rows[0]);
+  return { ...asMedia(rows[0]), seo: input.seo ?? await getSeoForId(id) };
 }
 
 export async function deleteMedia(id: string): Promise<boolean> {
@@ -181,6 +228,7 @@ export async function deleteMedia(id: string): Promise<boolean> {
     ? await db()`DELETE FROM text_posts WHERE id = ${id} RETURNING title`
     : await db()`DELETE FROM media_items WHERE id = ${id} RETURNING title`;
   if (!rows.length) return false;
+  await db()`DELETE FROM site_content WHERE key = ${seoKey(id)}`;
   await notify("محتوا حذف شد", String(rows[0].title), "media");
   return true;
 }
@@ -191,7 +239,7 @@ export async function toggleMediaPublish(id: string): Promise<MediaItem | null> 
     : await db()`UPDATE media_items SET published = NOT published WHERE id = ${id} RETURNING *`;
   if (!rows.length) return null;
   await notify(rows[0].published ? "اثر منتشر شد" : "اثر پیش‌نویس شد", String(rows[0].title), "media");
-  return isTextPost(id) ? asTextPost(rows[0]) : asMedia(rows[0]);
+  return { ...(isTextPost(id) ? asTextPost(rows[0]) : asMedia(rows[0])), seo: await getSeoForId(id) };
 }
 
 export async function incrementMediaCounter(id: string, action: "like" | "view") {
