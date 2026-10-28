@@ -1,0 +1,39 @@
+name: Production SEO Smoke Audit
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 10 * * 1"
+  push:
+    branches:
+      - main
+    paths:
+      - "scripts/seo-audit.mjs"
+      - "tests/seo-audit.test.mjs"
+      - ".github/workflows/seo-audit.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hamid-astronomy-production-seo
+  cancel-in-progress: true
+
+jobs:
+  seo-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Validate SEO audit (offline)
+        run: node --test tests/seo-audit.test.mjs
+      - name: Check live robots, sitemap and SEO metadata
+        env:
+          SEO_AUDIT_URL: https://hamid-astronomy-x-mrhossein.vercel.app
+          SEO_AUDIT_MAX_PAGES: "12"
+        run: node scripts/seo-audit.mjs
