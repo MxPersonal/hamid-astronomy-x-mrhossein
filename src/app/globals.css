@@ -1274,3 +1274,18 @@ a {
   font-size: 12px;
 }
 .media-modal-permalink:hover { background: rgba(143,109,244,.14); }
+
+/* Phase 3: editorial SEO settings, matching the existing admin design. */
+.seo-edit-panel { margin: 10px 22px 22px; padding: 22px; border: 1px solid rgba(150,130,215,.28); border-radius: 14px; background: rgba(143,109,244,.045); min-width: 0; }
+.seo-edit-panel legend { padding: 0 9px; font-weight: 700; font-size: 13px; color: #b9a5ff; }
+.seo-edit-note { margin: 0 0 16px; color: #8c859c; font-size: 11px; line-height: 2; }
+.seo-edit-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 20px; }
+.seo-edit-grid .field-label { min-width: 0; }
+.seo-edit-grid input[type="date"] { direction: ltr; }
+.seo-index-toggle { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: #d5cee9; font-size: 12px; }
+.seo-index-toggle input { accent-color: #8f6df4; width: 17px; height: 17px; }
+.seo-index-toggle small { width: 100%; font-size: 10px; line-height: 1.8; color: #9d96ad; }
+@media (max-width: 780px) {
+  .seo-edit-grid { grid-template-columns: 1fr; }
+  .seo-edit-panel { margin: 8px 14px 20px; padding: 16px; }
+}
