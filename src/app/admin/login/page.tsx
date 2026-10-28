@@ -4,8 +4,8 @@ import { hasValidAdminSession } from "@/lib/admin-auth";
 import { AdminLoginForm } from "./admin-login-form";
 
 export const metadata: Metadata = {
-  title: "ورود مدیر | سُها",
-  description: "ورود امن به پنل مدیریت گالری سُها",
+  title: "ورود مدیر | Hamid Astronomy",
+  description: "ورود امن به پنل مدیریت گالری Hamid Astronomy",
   robots: { follow: false, index: false },
 };
 

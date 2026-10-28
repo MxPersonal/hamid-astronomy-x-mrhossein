@@ -66,7 +66,7 @@ export function AdminLoginForm() {
       <section className="admin-login-card" aria-labelledby="login-title">
         <div className="login-brand">
           <span className="brand-orbit" aria-hidden="true"><i /></span>
-          <span><strong>سُها</strong><small>روایت بی‌کران</small></span>
+          <span><strong>Hamid Astronomy</strong><small>روایت بی‌کران</small></span>
         </div>
 
         <div className="login-security-icon" aria-hidden="true">

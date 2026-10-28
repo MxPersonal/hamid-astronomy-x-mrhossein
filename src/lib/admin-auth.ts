@@ -3,7 +3,7 @@ import "server-only";
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 
-export const ADMIN_SESSION_COOKIE = "soha_admin_session";
+export const ADMIN_SESSION_COOKIE = "hamid_astronomy_admin_session";
 
 const SESSION_LIFETIME_SECONDS = 8 * 60 * 60;
 const SESSION_VERSION = 1;

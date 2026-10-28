@@ -1,5 +1,5 @@
 {
-  "name": "app4",
+  "name": "hamid-astronomy-x-mrhossein",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.2.0",
     "lucide-react": "^1.30.0",
     "next": "16.3.0",
     "react": "19.2.8",

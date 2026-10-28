@@ -6,6 +6,7 @@ import type {
   MediaCategory,
   MediaType,
   NewMediaInput,
+  MediaItem,
 } from "@/types/media";
 import { MediaImage } from "./media-image";
 
@@ -19,7 +20,8 @@ const categories: MediaCategory[] = [
 
 interface PublishModalProps {
   onClose: () => void;
-  onPublish: (input: NewMediaInput) => void;
+  onPublish: (input: NewMediaInput) => Promise<void>;
+  initial?: MediaItem;
 }
 
 function normalizeVideoUrl(value: string): string {
@@ -38,21 +40,21 @@ function normalizeVideoUrl(value: string): string {
   return trimmed;
 }
 
-export function PublishModal({ onClose, onPublish }: PublishModalProps) {
-  const [type, setType] = useState<MediaType>("image");
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState<MediaCategory>("سحابی‌ها");
-  const [image, setImage] = useState("");
-  const [videoUrl, setVideoUrl] = useState("");
-  const [capturedAt, setCapturedAt] = useState(
+export function PublishModal({ onClose, onPublish, initial }: PublishModalProps) {
+  const [type, setType] = useState<MediaType>(initial?.type ?? "image");
+  const [title, setTitle] = useState(initial?.title ?? "");
+  const [description, setDescription] = useState(initial?.description ?? "");
+  const [category, setCategory] = useState<MediaCategory>(initial?.category ?? "سحابی‌ها");
+  const [image, setImage] = useState(initial?.image ?? "");
+  const [videoUrl, setVideoUrl] = useState(initial?.videoUrl ?? "");
+  const [capturedAt, setCapturedAt] = useState(initial?.capturedAt ??
     new Intl.DateTimeFormat("fa-IR", {
       day: "2-digit",
       month: "long",
       year: "numeric",
     }).format(new Date()),
   );
-  const [published, setPublished] = useState(true);
+  const [published, setPublished] = useState(initial?.published ?? true);
   const [error, setError] = useState("");
   const titleRef = useRef<HTMLInputElement>(null);
 
@@ -89,7 +91,7 @@ export function PublishModal({ onClose, onPublish }: PublishModalProps) {
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const cleanTitle = title.trim();
     const cleanDescription = description.trim();
@@ -110,7 +112,8 @@ export function PublishModal({ onClose, onPublish }: PublishModalProps) {
       return;
     }
 
-    onPublish({
+    try {
+      await onPublish({
       title: cleanTitle,
       description: cleanDescription,
       type,
@@ -119,7 +122,10 @@ export function PublishModal({ onClose, onPublish }: PublishModalProps) {
       videoUrl: type === "video" ? normalizeVideoUrl(videoUrl) : undefined,
       capturedAt: capturedAt.trim(),
       published,
-    });
+      });
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "ذخیره ناموفق بود");
+    }
   };
 
   return (
@@ -136,7 +142,7 @@ export function PublishModal({ onClose, onPublish }: PublishModalProps) {
         <div className="publish-header">
           <div>
             <span>مدیریت محتوا</span>
-            <h2 id="publish-title">انتشار اثر تازه</h2>
+            <h2 id="publish-title">{initial ? "ویرایش اثر" : "انتشار اثر تازه"}</h2>
           </div>
           <button type="button" onClick={onClose} aria-label="بستن فرم">
             <X size={20} />
@@ -287,7 +293,7 @@ export function PublishModal({ onClose, onPublish }: PublishModalProps) {
             انصراف
           </button>
           <button type="submit" className="publish-button">
-            <Check size={18} /> {published ? "انتشار اثر" : "ذخیره پیش‌نویس"}
+            <Check size={18} /> {initial ? "ذخیره ویرایش" : published ? "انتشار اثر" : "ذخیره پیش‌نویس"}
           </button>
         </div>
       </form>

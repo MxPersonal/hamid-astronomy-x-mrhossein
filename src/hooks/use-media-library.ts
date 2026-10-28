@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { initialMedia } from "@/data/media";
 import type { MediaItem, NewMediaInput } from "@/types/media";
 
-const STORAGE_KEY = "soha-media-library-v1";
+const STORAGE_KEY = "hamid-astronomy-media-library-v1";
 
 export function useMediaLibrary() {
   const [items, setItems] = useState<MediaItem[]>(initialMedia);

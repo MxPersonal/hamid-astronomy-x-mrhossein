@@ -1,18 +1,9 @@
-"use client";
+import { PublicHome } from "@/components/public-home";
+import { getMediaItems, getSiteContent } from "@/lib/cms-db";
 
-import { useRouter } from "next/navigation";
-import { PublicGallery } from "@/components/public-gallery";
-import { useMediaLibrary } from "@/hooks/use-media-library";
+export const dynamic = "force-dynamic";
 
-export default function Home() {
-  const router = useRouter();
-  const { publishedItems, likeItem } = useMediaLibrary();
-
-  return (
-    <PublicGallery
-      items={publishedItems}
-      onLike={likeItem}
-      onEnterAdmin={() => router.push("/admin")}
-    />
-  );
+export default async function Home() {
+  const [initialItems, content] = await Promise.all([getMediaItems(), getSiteContent()]);
+  return <PublicHome initialItems={initialItems} content={content} />;
 }

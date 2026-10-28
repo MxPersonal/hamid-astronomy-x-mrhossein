@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { mediaCategories } from "@/data/media";
 import type { MediaCategory, MediaItem } from "@/types/media";
+import type { SiteContent } from "@/lib/cms-content";
 import { MediaCard } from "./media-card";
 import { MediaModal } from "./media-modal";
 import { MediaImage } from "./media-image";
@@ -17,19 +18,24 @@ import { MediaImage } from "./media-image";
 interface PublicGalleryProps {
   items: MediaItem[];
   onLike: (id: string) => void;
+  onView: (id: string) => void;
   onEnterAdmin: () => void;
+  content: SiteContent;
 }
 
 export function PublicGallery({
   items,
   onLike,
+  onView,
   onEnterAdmin,
+  content,
 }: PublicGalleryProps) {
   const [activeCategory, setActiveCategory] = useState<"همه" | MediaCategory>(
     "همه",
   );
   const [query, setQuery] = useState("");
-  const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null);
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const selectedItem = items.find((item) => item.id === selectedItemId) ?? null;
 
   const filteredItems = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("fa");
@@ -50,25 +56,25 @@ export function PublicGallery({
   return (
     <div className="public-shell">
       <header className="site-header">
-        <a className="brand" href="#top" aria-label="صفحه اصلی سها">
+        <a className="brand" href="#top" aria-label="صفحه اصلی Hamid Astronomy">
           <span className="brand-orbit" aria-hidden="true">
             <i />
           </span>
           <span>
-            <strong>سُها</strong>
-            <small>روایت بی‌کران</small>
+            <strong>{content.brandName}</strong>
+            <small>{content.brandTagline}</small>
           </span>
         </a>
 
         <nav aria-label="ناوبری اصلی">
           <a className="active" href="#gallery">
-            گالری
+            {content.navGallery}
           </a>
-          <a href="#about">درباره سها</a>
+          <a href="#about">{content.navAbout}</a>
         </nav>
 
         <button type="button" className="admin-entry" onClick={onEnterAdmin}>
-          ورود مدیر
+          {content.adminEntryLabel}
           <ArrowLeft size={16} />
         </button>
       </header>
@@ -77,7 +83,7 @@ export function PublicGallery({
         <section className="hero" aria-labelledby="hero-title">
           {featured && (
             <MediaImage
-              src={featured.image}
+              src={content.heroImage || featured.image}
               alt=""
               priority
               sizes="100vw"
@@ -89,26 +95,25 @@ export function PublicGallery({
           <div className="hero-content">
             <div className="eyebrow">
               <Sparkles size={15} />
-              آرشیو تصویری جهان
+              {content.heroEyebrow}
             </div>
             <h1 id="hero-title">
-              جهان، <em>قاب به قاب</em>
+              {content.heroTitle} <em>{content.heroHighlight}</em>
             </h1>
             <p>
-              مجموعه‌ای انتخاب‌شده از شگفت‌انگیزترین تصاویر و ویدیوهای کیهان؛
-              از سکوت ماه تا مرزهای دور کهکشان‌ها.
+              {content.heroDescription}
             </p>
             <div className="hero-actions">
               <a href="#gallery" className="primary-action">
-                تماشای گالری <ArrowDown size={17} />
+                {content.heroButton} <ArrowDown size={17} />
               </a>
-              <span>هر تصویر، یک جهان برای کشف</span>
+              <span>{content.heroCaption}</span>
             </div>
           </div>
           <div className="hero-index" aria-hidden="true">
             <span>∞</span>
             <i />
-            <small>SOHA / COSMIC ARCHIVE</small>
+            <small>HAMID ASTRONOMY / COSMIC ARCHIVE</small>
           </div>
         </section>
 
@@ -116,15 +121,15 @@ export function PublicGallery({
           <div className="section-heading">
             <div>
               <span className="section-number">۰۱</span>
-              <h2>تازه‌های کیهان</h2>
-              <p>آخرین قاب‌های اضافه‌شده به آرشیو سها</p>
+              <h2>{content.galleryTitle}</h2>
+              <p>{content.galleryDescription}</p>
             </div>
             <label className="search-field">
               <Search size={17} />
               <span className="sr-only">جست‌وجوی گالری</span>
               <input
                 type="search"
-                placeholder="جست‌وجو در کیهان..."
+                placeholder={content.gallerySearch}
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
               />
@@ -152,7 +157,7 @@ export function PublicGallery({
                   key={item.id}
                   item={item}
                   index={index}
-                  onOpen={setSelectedItem}
+                  onOpen={(item) => { setSelectedItemId(item.id); onView(item.id); }}
                 />
               ))}
             </div>
@@ -161,8 +166,8 @@ export function PublicGallery({
               <span className="brand-orbit" aria-hidden="true">
                 <i />
               </span>
-              <h3>چیزی در این مدار پیدا نشد</h3>
-              <p>عبارت جست‌وجو یا دسته‌بندی را تغییر دهید.</p>
+              <h3>{content.galleryEmptyTitle}</h3>
+              <p>{content.galleryEmptyDescription}</p>
               <button
                 type="button"
                 onClick={() => {
@@ -170,7 +175,7 @@ export function PublicGallery({
                   setActiveCategory("همه");
                 }}
               >
-                نمایش همه آثار
+                {content.galleryEmptyButton}
               </button>
             </div>
           )}
@@ -179,15 +184,13 @@ export function PublicGallery({
         <section className="about-strip" id="about">
           <div>
             <span className="section-number">۰۲</span>
-            <p>درباره‌ی سها</p>
+            <p>{content.aboutEyebrow}</p>
           </div>
           <h2>
-            برای دیدنِ دوردست‌ها،
-            <br /> گاهی فقط باید <em>مکث کرد.</em>
+            {content.aboutTitle} <em>{content.aboutHighlight}</em>
           </h2>
           <p>
-            سها یک گالری مستقل برای روایت تصویری نجوم است؛ جایی برای نزدیک‌تر
-            شدن به علم، زیبایی و سکوت بی‌انتهای جهان.
+            {content.aboutDescription}
           </p>
         </section>
       </main>
@@ -202,8 +205,8 @@ export function PublicGallery({
             <small>روایت بی‌کران</small>
           </span>
         </a>
-        <p>ساخته‌شده برای عاشقان آسمان و آن‌سوی آن.</p>
-        <a href="https://instagram.com" target="_blank" rel="noreferrer" aria-label="اینستاگرام">
+        <p>{content.footerDescription}</p>
+        <a href={content.footerInstagram || "#about"} target="_blank" rel="noreferrer" aria-label="اینستاگرام">
           <Aperture size={18} />
         </a>
       </footer>
@@ -211,7 +214,7 @@ export function PublicGallery({
       {selectedItem && (
         <MediaModal
           item={selectedItem}
-          onClose={() => setSelectedItem(null)}
+          onClose={() => setSelectedItemId(null)}
           onLike={onLike}
         />
       )}

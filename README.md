@@ -1,150 +1,170 @@
 <div align="center">
 
-<img src="./public/images/cosmic-rift.png" alt="سُها | نمایی از گالری تصویری کیهان" width="100%" />
+# 🌌 Hamid Astronomy
+### Explore the Universe, One Frame at a Time
 
-# سُها · SOHA
-### Cosmic Archive / روایت بی‌کران
+**یک گالری فارسی برای روایت دیداری کیهان، تصاویر نجومی و ویدیوهای فضایی**
 
-**جهان، قاب به قاب.** 🌌
+[![Next.js](https://img.shields.io/badge/Next.js-16.3-000?logo=nextdotjs)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-149eca?logo=react)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript)](https://www.typescriptlang.org/)
+[![Neon](https://img.shields.io/badge/Neon-PostgreSQL-00e599?logo=postgresql&logoColor=white)](https://neon.com/)
+[![Vercel](https://img.shields.io/badge/Vercel-Deployment-black?logo=vercel)](https://vercel.com/)
 
-گالری تصویری و ویدیویی نجوم با تجربه‌ای سینمایی، جست‌وجوی فارسی و فضای مدیریت اختصاصی.
-
-[![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=nextdotjs)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-19-149ECA?logo=react)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-![Content storage](https://img.shields.io/badge/Content-Browser%20LocalStorage-7c3aed)
+**[🌐 Live Website](https://hamid-astronomy-x-mrhossein.vercel.app/)** ·
+**[🧑‍🚀 CMS Login](https://hamid-astronomy-x-mrhossein.vercel.app/admin/login)** ·
+**[GitHub Repository](https://github.com/MxPersonal/hamid-astronomy-x-mrhossein)**
 
 </div>
 
 ---
 
-## 🔭 آشنایی با سُها | About
+## ✨ About / درباره پروژه
 
-**سُها (SOHA)** تجربه‌ای فارسی برای کشف تصاویر، روایت‌ها و ویدیوهای نجومی است؛ یک آرشیو بصری که میان سحابی‌ها، کهکشان‌ها، منظومه شمسی و ماه حرکت می‌کند. صفحه اصلی از تصویری شاخص آغاز می‌شود و به گالری جست‌وجوپذیر و قابل فیلتر می‌رسد.
+**Hamid Astronomy** یک وب‌سایت گالری نجوم با طراحی **Cosmic Dark** و پشتیبانی فارسی راست‌به‌چپ است. پروژه با Next.js App Router ساخته شده و یک پنل مدیریت اختصاصی برای کنترل متن‌ها، تصاویر، ویدیوها، اطلاعات SEO و وضعیت انتشار محتوا دارد.
 
-**English:** SOHA is a Persian-first astronomy media-gallery prototype with a cinematic hero, searchable categories, a media viewer and a protected admin interface.
+The website combines an editorial, responsive cosmic gallery with a custom, authenticated content management experience backed by **Neon PostgreSQL**.
 
-## ✨ What you can explore
+## 🚀 Highlights
 
-| بخش | تجربه |
-|:--|:--|
-| 🌠 **نمای شاخص** | Hero تصویری با هویت بصری فضایی |
-| 🔎 **جست‌وجو** | فیلتر عنوان، توضیحات و دسته‌بندی به زبان فارسی |
-| 🪐 **دسته‌بندی‌ها** | سحابی‌ها، کهکشان‌ها، منظومه شمسی، ماه و ویدیوها |
-| 🎞️ **مشاهده رسانه** | کارت تصویر/ویدیو و نمایش جزئیات در Modal |
-| ♥️ **پسندیدن** | شمارنده لایک در داده‌های مرورگر |
-| 🔒 **ورود مدیر** | `/admin/login` با اطلاعات مدیریتی سمت سرور و Cookie امضاشده |
-| 🗃️ **داشبورد محتوا** | افزودن و حذف رسانه، انتشار/عدم انتشار و نمایش آمار محلی |
+| Experience | Capabilities |
+|---|---|
+| 🌠 Public gallery | Responsive masonry-inspired layout, featured hero, category filters and search |
+| 🖼️ Media viewer | Full-size image viewer, supported YouTube embeds and MP4/WebM playback |
+| 💜 Engagement | Persisted like and view counters |
+| 📝 Content CMS | Edit site identity, hero, headlines, descriptions, gallery, about section, footer, links and SEO fields |
+| 📷 Media CMS | Add, edit, remove, publish/unpublish photos and videos |
+| 🔔 Notifications | Database-backed CMS activity feed and unread status |
+| 🔐 Admin security | Server-side credential validation, signed HttpOnly cookie, session expiry, same-origin checks |
+| 🌙 Visual design | Matching dark-mode public site and CMS; Persian-first, RTL, mobile-responsive |
+| 🗄️ Persistence | PostgreSQL tables for content, media records, and notifications |
 
-## 🖼️ Gallery preview
+## 🧭 Architecture
 
-<div align="center">
-  <img src="./public/images/ringed-world.png" alt="سیاره حلقه‌دار در مجموعه سُها" width="48%" />
-  <img src="./public/images/lunar-highlands.png" alt="سطح ماه در مجموعه سُها" width="48%" />
-</div>
+```mermaid
+flowchart TD
+  Visitor[Public Visitor] --> Next[Next.js 16 App Router]
+  Admin[Authenticated Admin] --> CMS[Custom CMS]
+  CMS --> API[Protected Route Handlers]
+  Next --> DAL[Server-side Data Access]
+  API --> DAL
+  DAL --> Neon[(Neon PostgreSQL)]
+  Next --> Gallery[Public Gallery]
+```
 
-> تصاویر و اعداد اولیه در `src/data/media.ts` داده‌های نمایشی/بذر پروژه هستند. آن‌ها را **مستندات رصد واقعی، آمار بازدید حقیقی، یا تصاویر ثبت‌شده توسط یک عکاس مشخص** تلقی نکنید، مگر منشأ آن‌ها جداگانه تأیید شود.
+## 🧰 Tech Stack
 
-## 🧱 Tech stack
+- **Web:** Next.js 16.3, React 19, TypeScript, Tailwind CSS 4, custom CSS
+- **Icons:** Lucide React
+- **Typography:** Vazirmatn, RTL Persian interface
+- **Database:** Neon Serverless PostgreSQL using `@neondatabase/serverless`
+- **Authentication:** Environment-configured admin credentials and HMAC-signed sessions
+- **Hosting:** Vercel; the `main` branch is the source for production changes
 
-- **Framework:** Next.js 16 (App Router), React 19, TypeScript.
-- **Design:** Tailwind CSS 4, custom global styles, Lucide iconography.
-- **Content state:** React hooks with `window.localStorage`.
-- **Authentication:** Server-side admin credentials and HMAC-signed `HttpOnly` cookie.
+## 🗂️ Structure
 
-~~~text
+```text
 src/
-├── app/
-│   ├── page.tsx              # Public gallery
-│   ├── admin/                # Protected editor / sign-in
-│   └── api/admin/            # Login / logout handlers
-├── components/               # Gallery, cards, media modal, admin UI
-├── data/media.ts             # Initial demo content
-├── hooks/use-media-library.ts
-├── lib/admin-auth.ts         # Admin session handling
-└── types/media.ts
-~~~
+  app/
+    page.tsx                    Public entrypoint
+    admin/                      Authentication and CMS
+    api/admin/                  Login and logout
+    api/cms/                    Protected content/media/notification APIs
+    api/media/[id]/             Public engagement counters
+    globals.css                 Cosmic website + CMS design system
+  components/
+    public-gallery.tsx          Public gallery
+    media-modal.tsx             Images and video
+    admin-dashboard.tsx         CMS control panel
+    site-content-editor.tsx     Site-wide text and image editing
+    publish-modal.tsx           Media editor
+  lib/
+    cms-content.ts              Default content and editable field registry
+    cms-db.ts                   Neon data access layer
+    admin-auth.ts               Signed admin sessions
+  data/media.ts                 Fallback/demo media for local UI
+database/schema.sql             PostgreSQL schema
+public/images/                  Bundled starter artwork
+```
 
-## ⚡ Getting started
+## 🛠️ Run Locally
 
-~~~bash
+**Requirements:** Node.js compatible with Next.js 16, npm, and optionally a Neon PostgreSQL project.
+
+```bash
 git clone https://github.com/MxPersonal/hamid-astronomy-x-mrhossein.git
 cd hamid-astronomy-x-mrhossein
 npm install
 cp .env.example .env.local
 npm run dev
-~~~
+```
 
-Open `http://localhost:3000`. Before accessing the admin area, replace the example credentials with your **own strong secrets**.
+Open `http://localhost:3000`. Set the secrets in `.env.local` before using the CMS.
 
-| Variable | Required for admin | Purpose |
-|:--|:--:|:--|
-| `ADMIN_USERNAME` | ✓ | Administrator username |
-| `ADMIN_PASSWORD` | ✓ | Unique password, normally at least 12 characters |
-| `ADMIN_SESSION_SECRET` | ✓ | Random secret of at least 48 characters |
-| `ALLOW_WEAK_ADMIN_PASSWORD` | No | Keep `false` outside isolated local tests |
+### Environment Variables
 
-**Available scripts:** `npm run dev`, `npm run build`, `npm run start`, `npm run lint`.
+| Variable | Purpose |
+|---|---|
+| `DATABASE_URL` | Neon PostgreSQL pooled connection URL, server-side only |
+| `ADMIN_USERNAME` | Admin login username |
+| `ADMIN_PASSWORD` | Strong admin password, at least 12 characters |
+| `ADMIN_SESSION_SECRET` | Random HMAC signing secret, at least 48 characters |
+| `ALLOW_WEAK_ADMIN_PASSWORD` | Optional development override. Keep `false` in production |
 
-## ⚠️ Persistence and production limitation
+> 🔒 Never commit actual values, put secrets in `NEXT_PUBLIC_` variables, or expose your database URL to browsers.
 
-The current `use-media-library` hook persists edits in **the browser's LocalStorage**, initialized from `src/data/media.ts`.
+### Database Setup
 
-- New items and likes are **not synchronized between users, devices, or browsers**.
-- Admin changes in one browser are **not a production CMS publication** for other visitors.
-- Clearing site data or switching browsers can remove locally edited content.
-- Media uploads are not backed by a centralized storage or database in this version.
-- Counters shown from initial content are sample data, **not verified analytics**.
+1. Create a separate project in [Neon](https://console.neon.tech/), or use the existing Hamid Astronomy project.
+2. Run [`database/schema.sql`](database/schema.sql) in Neon's SQL Editor (idempotent schema creation).
+3. Copy the pooled PostgreSQL connection string into `DATABASE_URL`.
+4. Set the same environment variable securely in Vercel for your deployment.
+5. Configure the three required admin credentials in Vercel and redeploy through your connected Git branch.
 
-For a genuinely multi-user public archive, add server-side CRUD, database persistence, media storage, authorization enforcement on every write, and real analytics. Until then, treat this repository as a polished **interactive gallery prototype**.
+The existing published demo entries were imported into the initial Hamid Astronomy Neon database. On a brand-new database, add media through the CMS or import your own seed data.
 
-## ☁️ Deployment
+**Database tables:** `site_content` (editable text/URLs), `media_items` (gallery records and counters), `cms_notifications` (action history).
 
-Import the GitHub repository into Vercel as a **Next.js** project; configure admin environment variables on Vercel **before** using the admin login. Pushes to the connected production branch can trigger automatic builds. Confirm page rendering and session behavior in your deployed environment; a successful build does not add shared content persistence.
+## 🎛️ CMS Guide
 
-## 🔐 Security notes
+Log in at `/admin/login`. The sidebar includes a media list and site-wide content editor. The top navigation includes **Back to Site**, **Notifications**, and **Logout**, also available on mobile. Media actions support draft/published states. Content changes are saved immediately to Neon and visible on the public website.
 
-Never commit populated `.env.local` files. Keep admin secrets server-only (no `NEXT_PUBLIC_` prefix), use HTTPS in production, and do not treat front-end visibility toggles as database authorization.
+### 📦 Media Storage Notes
 
-## 📄 License & usage
+- The CMS accepts HTTPS image URLs and small PNG/JPG/WebP uploads (currently limited to **2.5 MB** per image).
+- Small file uploads are stored as encoded image data in PostgreSQL. This is convenient at low volume, but **not appropriate for a large media archive**.
+- Video entries use validated YouTube embed URLs or HTTPS MP4/WebM links. Large video binary uploads are **not** stored in PostgreSQL.
+- For a larger archive, migrate images and videos to **Neon Object Storage** or another object-storage provider while keeping metadata in PostgreSQL.
+- The Free tiers have quotas; check [Neon pricing](https://neon.com/pricing) and [Vercel plans](https://vercel.com/pricing) before production traffic growth.
 
-No explicit LICENSE file was found in this repository at documentation time. Do **not** assume redistribution or commercial reuse rights without permission from the repository owner.
+## 🔒 Security Notes
 
-## 🛰️ From prototype to shared observatory | مسیر توسعه
+- The admin page and mutation endpoints require a valid signed session.
+- Session cookies are HttpOnly and SameSite Strict; production cookies are Secure.
+- Mutation endpoints reject cross-origin requests.
+- The current login attempt limiter runs **per server process**, not globally. Add a shared rate limiter before high-risk public exposure.
+- Likes/views are public endpoints, and the current counters are **not unique-user analytics**. Add abuse prevention if accurate metrics are essential.
+- Protect and rotate `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET`.
 
-This repository intentionally separates a **finished visual interaction** from a **production publishing system**.
+## 🧪 Quality Commands
 
-| Capability | In this repository | Production-grade next step |
-|:--|:--|:--|
-| Discovery | Searchable gallery and media viewer | Cross-browser accessibility testing |
-| Initial archive | Seed media in `src/data/media.ts` | Verified provenance and metadata |
-| Content edits | `use-media-library` + browser LocalStorage | Authenticated server-side CRUD |
-| Authentication | Protected admin session | Role-based permissions on every write |
-| Counters | Demo/local values | Genuine analytics pipeline |
-| Assets | Included local images and media URLs | Managed storage, moderation and backups |
-
-### 🔭 Editorial standards
-
-When publishing actual astrophotography, record the author, capture date, equipment, image-processing context, source and licensing permission. Keep artistic illustrations, simulations and observational photographs clearly differentiated. The seed descriptions and counts in the repository should remain labeled *demonstration content* until independently verified.
-
-### ✅ Review before a release
-
-~~~bash
+```bash
 npm run lint
 npm run build
-~~~
+```
 
-- [ ] Check the gallery and modal on mobile and desktop, including keyboard focus and dismissal.
-- [ ] Search by Persian title, description and category; confirm empty-result behavior.
-- [ ] Test sign-in rejection, signed-cookie expiration and logout.
-- [ ] Confirm published/unpublished UI behavior and understand that local edits do **not** synchronize to other visitors.
-- [ ] Do not advertise local counters as verified public viewing statistics.
+Also test the following manually: public gallery, filtering, image/video viewer, admin login/logout, upload, publish/draft, site text edits, notification creation and read state, mobile navbar, and database persistence across browsers.
 
-**Data safety:** exporting, resetting or clearing browser data can affect locally created entries. A shared astronomical archive requires a real backend, durable media storage and documented editorial ownership.
+## 🤝 Contributing & Project Scope
+
+This repository represents a custom astronomy website and CMS. Changes should maintain the **Hamid Astronomy** brand, Persian RTL accessibility, dark cosmic design, and centralized content management.
+
+---
 
 <div align="center">
 
-**SOHA · Every frame opens another universe.** ✨
+**Made for people who look up. ✦**
+
+**Hamid Astronomy** · Powered by curiosity, code, and the cosmos.
 
 </div>
