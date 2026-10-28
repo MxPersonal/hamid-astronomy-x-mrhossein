@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   BarChart3, Bell, CheckCircle2, CircleUserRound, Eye, FileImage, Globe2, Heart,
   Images, LayoutDashboard, LogOut, Menu, Plus, Search, Settings,
@@ -12,6 +12,43 @@ import type { CmsNotification, SiteContent } from "@/lib/cms-content";
 import { PublishModal } from "./publish-modal";
 import { MediaImage } from "./media-image";
 import { SiteContentEditor } from "./site-content-editor";
+import { AdminAnalyticsCharts } from "./admin-analytics-charts";
+
+type AdminSection = "dashboard" | "contents" | "categories" | "analytics" | "settings";
+
+const SECTION_DETAILS: Record<AdminSection, { title: string; subtitle: string; breadcrumb: string }> = {
+  dashboard: {
+    title: "نمای کلی مدیریت",
+    subtitle: "خلاصه آخرین وضعیت محتوا و فعالیت‌های سایت",
+    breadcrumb: "نمای کلی",
+  },
+  contents: {
+    title: "مدیریت محتواها",
+    subtitle: "افزودن، ویرایش و انتشار آثار نجومی",
+    breadcrumb: "محتواها",
+  },
+  categories: {
+    title: "دسته‌بندی‌های سایت",
+    subtitle: "مدیریت گروه‌های نمایش محتوا در گالری",
+    breadcrumb: "دسته‌بندی‌ها",
+  },
+  analytics: {
+    title: "تحلیل و آمار سایت",
+    subtitle: "نمودارهای واقعی بر اساس داده‌های ثبت‌شده در Neon",
+    breadcrumb: "آمار و نمودارها",
+  },
+  settings: {
+    title: "تنظیمات و محتوای سایت",
+    subtitle: "ویرایش متن‌ها، تصاویر و تنظیمات عمومی SEO",
+    breadcrumb: "تنظیمات سایت",
+  },
+};
+
+function sectionFromHash(): AdminSection {
+  if (typeof window === "undefined") return "dashboard";
+  const section = window.location.hash.slice(1);
+  return section in SECTION_DETAILS ? section as AdminSection : "dashboard";
+}
 
 interface Props {
   items: MediaItem[];
@@ -36,6 +73,7 @@ export function AdminDashboard({
   items, categories, onCreateCategory, content, notifications, legacyCount, importingLegacy, onImportLegacy, onAdd, onEdit, onDelete, onTogglePublished,
   onSaveContent, onReadNotifications, onLogout, onViewSite,
 }: Props) {
+  const [activeSection, setActiveSection] = useState<AdminSection>("dashboard");
   const [showPublish, setShowPublish] = useState(false);
   const [editing, setEditing] = useState<MediaItem | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -89,6 +127,26 @@ export function AdminDashboard({
     }
   };
   const closeMenu = () => setMenuOpen(false);
+  useEffect(() => {
+    const sync = () => setActiveSection(sectionFromHash());
+    sync();
+    window.addEventListener("hashchange", sync);
+    window.addEventListener("popstate", sync);
+    return () => {
+      window.removeEventListener("hashchange", sync);
+      window.removeEventListener("popstate", sync);
+    };
+  }, []);
+
+  const navigate = (section: AdminSection) => {
+    setActiveSection(section);
+    closeMenu();
+    setNotificationsOpen(false);
+    if (window.location.hash !== `#${section}`) {
+      window.history.pushState(null, "", `#${section}`);
+    }
+    window.scrollTo({ top: 0, behavior: "instant" });
+  };
 
   return (
     <div className="admin-shell">
@@ -100,12 +158,12 @@ export function AdminDashboard({
         </div>
         <nav aria-label="ناوبری مدیریت">
           <span>فضای کاری</span>
-          <a className="active" href="#dashboard" onClick={closeMenu}><LayoutDashboard size={19} /> نمای کلی</a>
-          <a href="#contents" onClick={closeMenu}><Images size={19} /> محتواها <b>{items.length.toLocaleString("fa-IR")}</b></a>
-          <a href="#categories" onClick={closeMenu}><Plus size={19} /> دسته‌بندی‌ها</a>
-          <a href="#analytics" onClick={closeMenu}><BarChart3 size={19} /> آمار بازدید</a>
+          <button type="button" className={activeSection === "dashboard" ? "active" : ""} aria-current={activeSection === "dashboard" ? "page" : undefined} onClick={() => navigate("dashboard")}><LayoutDashboard size={19} /> نمای کلی</button>
+          <button type="button" className={activeSection === "contents" ? "active" : ""} aria-current={activeSection === "contents" ? "page" : undefined} onClick={() => navigate("contents")}><Images size={19} /> محتواها <b>{items.length.toLocaleString("fa-IR")}</b></button>
+          <button type="button" className={activeSection === "categories" ? "active" : ""} aria-current={activeSection === "categories" ? "page" : undefined} onClick={() => navigate("categories")}><Plus size={19} /> دسته‌بندی‌ها</button>
+          <button type="button" className={activeSection === "analytics" ? "active" : ""} aria-current={activeSection === "analytics" ? "page" : undefined} onClick={() => navigate("analytics")}><BarChart3 size={19} /> آمار و نمودارها</button>
           <span>مدیریت سایت</span>
-          <a href="#settings" onClick={closeMenu}><Settings size={19} /> تمام متن‌ها و تصاویر</a>
+          <button type="button" className={activeSection === "settings" ? "active" : ""} aria-current={activeSection === "settings" ? "page" : undefined} onClick={() => navigate("settings")}><Settings size={19} /> تمام متن‌ها و تصاویر</button>
         </nav>
         <div className="sidebar-profile">
           <span><CircleUserRound size={22} /></span>
@@ -117,7 +175,7 @@ export function AdminDashboard({
       <div className="admin-main">
         <header className="admin-topbar">
           <button className="menu-button" type="button" onClick={() => setMenuOpen(true)} aria-label="بازکردن منو"><Menu size={21} /></button>
-          <div className="admin-breadcrumb"><span>{content.brandName}</span><b>/</b><strong>پنل مدیریت سایت</strong></div>
+          <div className="admin-breadcrumb"><span>{content.brandName}</span><b>/</b><strong>{SECTION_DETAILS[activeSection].breadcrumb}</strong></div>
           <div className="topbar-actions">
             <button type="button" className="view-site-topbar" onClick={onViewSite}>
               <Globe2 size={17} /><span>بازگشت به سایت</span>
@@ -152,12 +210,12 @@ export function AdminDashboard({
           </div>
         </header>
 
-        <main className="dashboard-content" id="dashboard">
+        <main className="dashboard-content" id="main-admin-panel" key={activeSection}>
           <section className="dashboard-welcome">
             <div>
               <p>{new Intl.DateTimeFormat("fa-IR", { dateStyle: "full" }).format(new Date())}</p>
-              <h1>مدیریت {content.brandName}</h1>
-              <span>عکس‌ها، ویدیوها، نوشته‌ها و ظاهر محتوایی سایت را یکجا مدیریت کنید.</span>
+              <h1>{SECTION_DETAILS[activeSection].title}</h1>
+              <span>{SECTION_DETAILS[activeSection].subtitle}</span>
             </div>
             <div className="welcome-actions">
               {legacyCount > 0 && <button type="button" className="legacy-import" disabled={importingLegacy}
@@ -168,15 +226,16 @@ export function AdminDashboard({
             </div>
           </section>
 
-          <section className="stats-grid" id="analytics" aria-label="آمار کلی">
+          {(activeSection === "dashboard" || activeSection === "analytics") && <section className="stats-grid" aria-label="آمار کلی">
             <article><span className="stat-icon purple"><FileImage size={21} /></span><div><small>آثار منتشرشده</small><strong>{stats.published.toLocaleString("fa-IR")}</strong></div></article>
             <article><span className="stat-icon cyan"><Eye size={21} /></span><div><small>مجموع بازدیدها</small><strong>{formatCompactNumber(stats.views)}</strong></div></article>
             <article><span className="stat-icon rose"><Heart size={21} /></span><div><small>مجموع پسندها</small><strong>{formatCompactNumber(stats.likes)}</strong></div></article>
             <article><span className="stat-icon amber"><FileText size={21} /></span><div><small>نوشته‌ها</small><strong>{stats.posts.toLocaleString("fa-IR")}</strong></div></article>
             <article><span className="stat-icon cyan"><Video size={21} /></span><div><small>ویدیوها</small><strong>{stats.videos.toLocaleString("fa-IR")}</strong></div></article>
-          </section>
+          </section>}
+          {(activeSection === "dashboard" || activeSection === "analytics") && <AdminAnalyticsCharts items={items} compact={activeSection === "dashboard"} />}
 
-          <section className="content-panel" id="contents">
+          {activeSection === "contents" && <section className="content-panel" id="contents">
             <div className="content-panel-header">
               <div><h2>رسانه‌ها و آثار</h2><p>افزودن، ویرایش، حذف و انتشار نوشته‌ها، عکس‌ها و ویدیوها</p></div>
               <label className="admin-search"><Search size={17} /><span className="sr-only">جست‌وجوی محتوا</span>
@@ -215,9 +274,9 @@ export function AdminDashboard({
               ))}
               {filteredItems.length === 0 && <div className="table-empty">محتوایی با این عبارت پیدا نشد.</div>}
             </div>
-          </section>
+          </section>}
 
-          <section className="category-manager" id="categories">
+          {activeSection === "categories" && <section className="category-manager" id="categories">
             <div className="category-manager-heading">
               <h2>مدیریت دسته‌بندی‌ها</h2>
               <p>دسته‌بندی‌های ساخته‌شده در فرم انتشار و فیلترهای سایت نمایش داده می‌شوند.</p>
@@ -235,14 +294,14 @@ export function AdminDashboard({
             <div className="category-manager-tags" aria-label="دسته‌بندی‌های موجود">
               {categories.map((name) => <span key={name}>{name}</span>)}
             </div>
-          </section>
+          </section>}
 
-          <SiteContentEditor content={content} onSave={onSaveContent} />
+          {activeSection === "settings" && <SiteContentEditor content={content} onSave={onSaveContent} />}
 
-          <section className="manager-note">
+          {(activeSection === "dashboard" || activeSection === "settings") && <section className="manager-note">
             <span><CheckCircle2 size={19} /></span>
             <div><strong>دیتابیس مرکزی Neon PostgreSQL</strong><p>تغییرات پس از ذخیره به‌صورت مشترک برای تمام بازدیدکنندگان در دسترس است.</p></div>
-          </section>
+          </section>}
         </main>
       </div>
 
