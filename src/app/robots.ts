@@ -1,15 +1,14 @@
 import type { MetadataRoute } from "next";
+import { SITE_URL } from "@/lib/seo";
 
-const SITE_URL =
-  "https://hamid-astronomy-x-mrhossein.vercel.app";
-
+/** Search crawling is allowed; administration and internal APIs are excluded. */
 export default function robots(): MetadataRoute.Robots {
+  const privatePaths = ["/admin", "/admin/", "/api/"];
   return {
-    rules: {
-      userAgent: "*",
-      allow: "/",
-      disallow: ["/admin/", "/api/"],
-    },
-    sitemap: `${SITE_URL}/sitemap.xml`,
+    rules: [
+      { userAgent: "*", allow: "/", disallow: privatePaths },
+      { userAgent: "OAI-SearchBot", allow: "/", disallow: privatePaths },
+    ],
+    sitemap: SITE_URL + "/sitemap.xml",
   };
 }
