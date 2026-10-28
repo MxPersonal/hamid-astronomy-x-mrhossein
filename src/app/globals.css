@@ -1379,3 +1379,14 @@ a {
   .saas-chart-topline .saas-chart-highlight { margin-right: 0; }
   .saas-line-wrap svg { min-height: 160px; }
 }
+
+/* Site settings now use independent child sections instead of a long scroll. */
+.site-editor-tabs { display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 20px; border-bottom: 1px solid #eeeaf5; background: #fcfbff; }
+.site-editor-tabs button { padding: 10px 14px; border: 1px solid #e8e2f2; border-radius: 9px; background: #fff; color: #797385; font-size: 11px; cursor: pointer; }
+.site-editor-tabs button.active { border-color: #c5b3f3; background: #f0eaff; color: #6947c4; font-weight: 700; }
+.site-editor-tabs button:focus-visible { outline: 2px solid #9374e7; outline-offset: 2px; }
+.site-editor > .editor-group { margin-top: 0; }
+@media (max-width: 650px) {
+  .site-editor-tabs { padding: 12px; gap: 7px; }
+  .site-editor-tabs button { flex: 1 1 auto; }
+}
