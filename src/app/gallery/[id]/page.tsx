@@ -73,12 +73,13 @@ export default async function MediaPage({ params }: Props) {
     headline: item.title, description,
     ...(conciseAnswer ? { abstract: conciseAnswer } : {}),
     ...(byline ? { author: { "@type": "Person", name: byline } } : {}),
-    ...(references.length ? { citation: references.map((ref) => ({
-      "@type": "CreativeWork", name: ref.title, url: ref.url,
-    })) } : {}),
+    ...((references.length || source) ? { citation: [
+      ...(source ? [{ "@type": "CreativeWork", url: source }] : []),
+      ...references.map((ref) => ({ "@type": "CreativeWork", name: ref.title, url: ref.url })),
+    ] } : {}),
     dateCreated: item.createdAt, inLanguage: "fa-IR",
     ...(publishedAt ? { datePublished: publishedAt } : {}),
-    ...(source ? { citation: source } : {}),
+
     mainEntityOfPage: url,
     ...(image ? { image } : {}),
   } : item.type === "video" ? {
