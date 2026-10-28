@@ -148,7 +148,7 @@ export default async function MediaPage({ params }: Props) {
               )}
             </div>
           )}
-          {(conciseAnswer || byline || visualLabel) && (
+          {(conciseAnswer || byline || visualLabel || publishedAt) && (
             <section className={styles.sciencePanel} aria-label="چکیده و شفافیت محتوا">
               {conciseAnswer && (
                 <div>
@@ -156,7 +156,7 @@ export default async function MediaPage({ params }: Props) {
                   <p className={styles.scienceText}>{conciseAnswer}</p>
                 </div>
               )}
-              {(byline || visualLabel) && (
+              {(byline || visualLabel || publishedAt) && (
                 <div className={styles.provenance}>
                   {byline && <p>تهیه‌کننده: {byline}</p>}
                   {visualLabel && <p>نوع تصویر: {visualLabel}</p>}
