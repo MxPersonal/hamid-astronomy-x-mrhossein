@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { getPublicMediaItem, getSiteContent } from "@/lib/cms-db";
 import { MediaImage } from "@/components/media-image";
 import { MediaDetailEngagement } from "@/components/media-detail-engagement";
@@ -16,15 +16,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const [item, content] = await Promise.all([getPublicMediaItem(id), getSiteContent()]);
   if (!item) return { title: "محتوا پیدا نشد", robots: { index: false, follow: false } };
 
-  const path = mediaPermalink(item.id);
+  const path = mediaPermalink(item);
   const url = new URL(path, SITE_URL).toString();
-  const title = `${item.title} | ${content.brandName}`;
-  const description = item.description.replace(/\s+/g, " ").trim().slice(0, 165);
-  const image = publicImageUrl(item.image);
+  const title = item.seo?.title.trim() || `${item.title} | ${content.brandName}`;
+  const description = item.seo?.description.trim() || item.description.replace(/\s+/g, " ").trim().slice(0, 165);
+  const image = publicImageUrl(item.seo?.shareImage) || publicImageUrl(item.image);
   return {
     title,
     description,
     alternates: { canonical: url },
+    robots: { index: item.seo?.indexable !== false, follow: true },
     openGraph: {
       title, description, url, siteName: content.brandName,
       locale: "fa_IR", type: item.type === "text" ? "article" : "website",
@@ -42,31 +43,41 @@ export default async function MediaPage({ params }: Props) {
   const { id } = await params;
   const [item, content] = await Promise.all([getPublicMediaItem(id), getSiteContent()]);
   if (!item) notFound();
+  const canonicalPath = mediaPermalink(item);
+  if (id !== (item.seo?.slug || item.id)) permanentRedirect(canonicalPath);
 
-  const url = new URL(mediaPermalink(item.id), SITE_URL).toString();
+  const url = new URL(canonicalPath, SITE_URL).toString();
   const image = publicImageUrl(item.image);
-  const description = item.description.replace(/\s+/g, " ").trim();
+  const description = item.seo?.description.trim() || item.description.replace(/\s+/g, " ").trim();
+  const publishedAt = item.seo?.publishedAt;
+  const sourceUrl = item.seo?.sourceUrl;
+  const source = sourceUrl && sourceUrl.startsWith("https://") ? sourceUrl : undefined;
   const pageEntity: Record<string, unknown> = {
     "@type": "WebPage", "@id": url, url,
-    name: item.title, description, inLanguage: "fa-IR",
+    name: item.seo?.title || item.title, description, inLanguage: "fa-IR",
     isPartOf: { "@id": `${SITE_URL}/#website` },
   };
   const mainEntity: Record<string, unknown> = item.type === "text" ? {
     "@type": "Article",
     headline: item.title, description,
     dateCreated: item.createdAt, inLanguage: "fa-IR",
+    ...(publishedAt ? { datePublished: publishedAt } : {}),
+    ...(source ? { citation: source } : {}),
     mainEntityOfPage: url,
     ...(image ? { image } : {}),
   } : item.type === "video" ? {
     "@type": "VideoObject",
     name: item.title, description,
     dateCreated: item.createdAt,
+    ...(publishedAt ? { uploadDate: publishedAt } : {}),
+    ...(source ? { isBasedOn: source } : {}),
     ...(image ? { thumbnailUrl: image } : {}),
     ...(item.videoUrl?.includes("youtube.com/embed") ? { embedUrl: item.videoUrl } :
       item.videoUrl?.startsWith("https://") ? { contentUrl: item.videoUrl } : {}),
   } : {
     "@type": "ImageObject",
     name: item.title, description, inLanguage: "fa-IR",
+    ...(source ? { isBasedOn: source } : {}),
     ...(image ? { contentUrl: image } : {}),
   };
   const schema = {
@@ -113,7 +124,7 @@ export default async function MediaPage({ params }: Props) {
                     allowFullScreen /> :
                   <video controls poster={item.image || undefined} src={item.videoUrl} preload="metadata" />
               ) : item.image ? (
-                <MediaImage src={item.image} alt={item.title} sizes="(max-width: 900px) 100vw, 900px" priority />
+                <MediaImage src={item.image} alt={item.seo?.altText || item.title} sizes="(max-width: 900px) 100vw, 900px" priority />
               ) : (
                 <div className={styles.notice}>ویدیویی برای نمایش در دسترس نیست.</div>
               )}
@@ -124,6 +135,11 @@ export default async function MediaPage({ params }: Props) {
               {item.description.split(/\n\s*\n/).map((paragraph, index) =>
                 <p key={index}>{paragraph}</p>
               )}
+            </div>
+          )}
+          {source && (
+            <div className={styles.meta}>
+              <a href={source} target="_blank" rel="noopener noreferrer">منبع علمی / اعتبار اثر</a>
             </div>
           )}
           <div className={styles.meta}>
