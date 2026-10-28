@@ -1,6 +1,8 @@
 "use client";
 
 import { Eye, FileText, Heart, Play } from "lucide-react";
+import Link from "next/link";
+import { mediaPermalink } from "@/lib/seo";
 import { formatCompactNumber } from "@/lib/format";
 import type { MediaItem } from "@/types/media";
 import { MediaImage } from "./media-image";
@@ -66,6 +68,14 @@ export function MediaCard({ item, index, onOpen }: MediaCardProps) {
           </div>
         </div>
       </button>
+      <Link
+        href={mediaPermalink(item.id)}
+        prefetch={false}
+        className="gallery-permalink"
+        aria-label={`صفحه مستقل: ${item.title}`}
+      >
+        صفحه کامل
+      </Link>
     </article>
   );
 }
