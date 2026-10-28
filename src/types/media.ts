@@ -11,6 +11,8 @@ export interface MediaSeo {
   sourceUrl: string;
   indexable: boolean;
   publishedAt: string;
+  /** Historical slugs retained for permanent redirects. */
+  aliases?: string[];
 }
 
 
