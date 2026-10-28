@@ -9,6 +9,7 @@ export function SiteContentEditor({ content, onSave }: {
   onSave: (key: keyof SiteContent, value: string) => Promise<void>;
 }) {
   const [draft, setDraft] = useState<SiteContent>({ ...content });
+  const [activeGroup, setActiveGroup] = useState(CONTENT_FIELDS[0].section);
   const [saving, setSaving] = useState<keyof SiteContent | null>(null);
   const [message, setMessage] = useState("");
   const save = async (key: keyof SiteContent) => {
@@ -39,7 +40,16 @@ export function SiteContentEditor({ content, onSave }: {
         <h2>مدیریت تمام محتوای سایت</h2>
         <p>نام، تیترها، متن‌ها، تصویر Hero، بخش درباره، لینک‌ها و اطلاعات سئو را از همین‌جا ویرایش کنید.</p>
       </div>
-      {CONTENT_FIELDS.map((group) => (
+      <nav className="site-editor-tabs" aria-label="بخش‌های تنظیمات سایت">
+        {CONTENT_FIELDS.map((group) => (
+          <button key={group.section} type="button" aria-pressed={activeGroup === group.section}
+            className={activeGroup === group.section ? "active" : ""}
+            onClick={() => { setActiveGroup(group.section); setMessage(""); }}>
+            {group.section}
+          </button>
+        ))}
+      </nav>
+      {CONTENT_FIELDS.filter((group) => group.section === activeGroup).map((group) => (
         <div className="editor-group" key={group.section}>
           <h3>{group.section}</h3>
           <div className="editor-fields">
