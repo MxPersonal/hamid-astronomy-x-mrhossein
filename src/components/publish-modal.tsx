@@ -1,7 +1,7 @@
 "use client";
 
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
-import { Check, ImagePlus, Link2, UploadCloud, X } from "lucide-react";
+import { Check, FileText, ImagePlus, Link2, UploadCloud, X } from "lucide-react";
 import type {
   MediaCategory,
   MediaType,
@@ -16,6 +16,7 @@ const categories: MediaCategory[] = [
   "منظومه شمسی",
   "ماه",
   "ویدیوها",
+  "نوشته‌ها",
 ];
 
 interface PublishModalProps {
@@ -56,6 +57,7 @@ export function PublishModal({ onClose, onPublish, initial }: PublishModalProps)
   );
   const [published, setPublished] = useState(initial?.published ?? true);
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -74,7 +76,7 @@ export function PublishModal({ onClose, onPublish, initial }: PublishModalProps)
   const onFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
       setError("برای کاور، یک فایل تصویری انتخاب کنید.");
       return;
     }
@@ -103,7 +105,11 @@ export function PublishModal({ onClose, onPublish, initial }: PublishModalProps)
       setError("برای اثر، توضیح کامل‌تری بنویسید.");
       return;
     }
-    if (!image) {
+    if (cleanDescription.length > (type === "text" ? 10000 : 3000)) {
+      setError("متن بیش از اندازه طولانی است.");
+      return;
+    }
+    if (type !== "text" && !image) {
       setError("یک تصویر کاور بارگذاری کنید یا آدرس آن را وارد کنید.");
       return;
     }
@@ -112,12 +118,13 @@ export function PublishModal({ onClose, onPublish, initial }: PublishModalProps)
       return;
     }
 
+    setSubmitting(true);
     try {
       await onPublish({
       title: cleanTitle,
       description: cleanDescription,
       type,
-      category: type === "video" ? "ویدیوها" : category,
+      category: type === "video" ? "ویدیوها" : type === "text" ? "نوشته‌ها" : category,
       image: image.trim(),
       videoUrl: type === "video" ? normalizeVideoUrl(videoUrl) : undefined,
       capturedAt: capturedAt.trim(),
@@ -125,6 +132,8 @@ export function PublishModal({ onClose, onPublish, initial }: PublishModalProps)
       });
     } catch (error) {
       setError(error instanceof Error ? error.message : "ذخیره ناموفق بود");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -156,7 +165,8 @@ export function PublishModal({ onClose, onPublish, initial }: PublishModalProps)
               <button
                 type="button"
                 className={type === "image" ? "active" : ""}
-                onClick={() => setType("image")}
+                onClick={() => { setType("image"); if (category === "ویدیوها" || category === "نوشته‌ها") setCategory("سحابی‌ها"); }}
+                disabled={Boolean(initial)}
               >
                 <ImagePlus size={17} /> تصویر
               </button>
@@ -167,44 +177,51 @@ export function PublishModal({ onClose, onPublish, initial }: PublishModalProps)
                   setType("video");
                   setCategory("ویدیوها");
                 }}
+                disabled={Boolean(initial)}
               >
                 <UploadCloud size={17} /> ویدیو
               </button>
+              <button type="button" className={type === "text" ? "active" : ""}
+                onClick={() => { setType("text"); setCategory("نوشته‌ها"); }}
+                disabled={Boolean(initial)}>
+                <FileText size={17} /> نوشته
+              </button>
             </fieldset>
+            {initial && <p className="content-type-hint">نوع محتوای موجود هنگام ویرایش ثابت است.</p>}
 
             <label className="field-label">
-              عنوان اثر
+              {type === "text" ? "عنوان نوشته" : "عنوان اثر"}
               <input
                 ref={titleRef}
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
-                maxLength={80}
+                maxLength={160}
                 placeholder="مثلاً: طلوع در مدار زحل"
               />
-              <small>{title.length.toLocaleString("fa-IR")} / ۸۰</small>
+              <small>{title.length.toLocaleString("fa-IR")} / ۱۶۰</small>
             </label>
 
             <label className="field-label">
-              توضیحات
+              {type === "text" ? "متن کامل نوشته" : "توضیحات"}
               <textarea
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
-                maxLength={500}
-                rows={5}
-                placeholder="داستان و اطلاعات این تصویر را بنویسید..."
+                maxLength={type === "text" ? 10000 : 3000}
+                rows={type === "text" ? 12 : 5}
+                placeholder={type === "text" ? "متن مقاله یا یادداشت نجومی را اینجا بنویسید؛ پاراگراف‌ها حفظ می‌شوند..." : "داستان و اطلاعات این تصویر را بنویسید..."}
               />
-              <small>{description.length.toLocaleString("fa-IR")} / ۵۰۰</small>
+              <small>{description.length.toLocaleString("fa-IR")} / {type === "text" ? "۱۰٬۰۰۰" : "۳٬۰۰۰"}</small>
             </label>
 
             <div className="form-row">
               <label className="field-label">
                 دسته‌بندی
                 <select
-                  value={type === "video" ? "ویدیوها" : category}
+                  value={type === "video" ? "ویدیوها" : type === "text" ? "نوشته‌ها" : category}
                   onChange={(event) =>
                     setCategory(event.target.value as MediaCategory)
                   }
-                  disabled={type === "video"}
+                  disabled={type === "video" || type === "text"}
                 >
                   {categories.map((item) => (
                     <option key={item}>{item}</option>
@@ -237,7 +254,7 @@ export function PublishModal({ onClose, onPublish, initial }: PublishModalProps)
           </div>
 
           <div className="upload-column">
-            <span className="upload-title">تصویر کاور</span>
+            <span className="upload-title">تصویر کاور {type === "text" ? "(اختیاری)" : "(الزامی)"}</span>
             <label className={`drop-zone ${image ? "has-image" : ""}`}>
               {image ? (
                 <MediaImage
@@ -279,7 +296,7 @@ export function PublishModal({ onClose, onPublish, initial }: PublishModalProps)
               />
               <span aria-hidden="true" />
               <div>
-                <strong>انتشار فوری در گالری</strong>
+                <strong>{type === "text" ? "انتشار نوشته در سایت" : "انتشار فوری در گالری"}</strong>
                 <small>در صورت خاموش‌بودن، به‌صورت پیش‌نویس ذخیره می‌شود.</small>
               </div>
             </label>
@@ -292,8 +309,8 @@ export function PublishModal({ onClose, onPublish, initial }: PublishModalProps)
           <button type="button" className="cancel-button" onClick={onClose}>
             انصراف
           </button>
-          <button type="submit" className="publish-button">
-            <Check size={18} /> {initial ? "ذخیره ویرایش" : published ? "انتشار اثر" : "ذخیره پیش‌نویس"}
+          <button type="submit" className="publish-button" disabled={submitting}>
+            <Check size={18} /> {submitting ? "در حال ذخیره..." : initial ? "ذخیره ویرایش" : published ? type === "text" ? "انتشار نوشته" : "انتشار اثر" : "ذخیره پیش‌نویس"}
           </button>
         </div>
       </form>

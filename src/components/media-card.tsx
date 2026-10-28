@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, Heart, Play } from "lucide-react";
+import { Eye, FileText, Heart, Play } from "lucide-react";
 import { formatCompactNumber } from "@/lib/format";
 import type { MediaItem } from "@/types/media";
 import { MediaImage } from "./media-image";
@@ -14,7 +14,7 @@ interface MediaCardProps {
 export function MediaCard({ item, index, onOpen }: MediaCardProps) {
   return (
     <article
-      className={`gallery-card gallery-card-${index % 5}`}
+      className={`gallery-card gallery-card-${index % 5}${item.type === "text" ? " gallery-card-text" : ""}`}
       style={{ animationDelay: `${Math.min(index * 70, 420)}ms` }}
     >
       <button
@@ -23,12 +23,19 @@ export function MediaCard({ item, index, onOpen }: MediaCardProps) {
         onClick={() => onOpen(item)}
         aria-label={`نمایش ${item.title}`}
       >
-        <MediaImage
-          src={item.image}
-          alt={item.title}
-          sizes="(max-width: 680px) 100vw, (max-width: 1100px) 50vw, 33vw"
-          className="gallery-image"
-        />
+        {item.image ? (
+          <MediaImage
+            src={item.image}
+            alt={item.title}
+            sizes="(max-width: 680px) 100vw, (max-width: 1100px) 50vw, 33vw"
+            className="gallery-image"
+          />
+        ) : (
+          <div className="gallery-text-art" aria-hidden="true">
+            <span className="gallery-text-orbit" />
+            <FileText size={60} strokeWidth={1} />
+          </div>
+        )}
         <div className="gallery-card-shade" />
         <div className="gallery-card-top">
           <span>{item.category}</span>
@@ -36,6 +43,9 @@ export function MediaCard({ item, index, onOpen }: MediaCardProps) {
             <span className="duration-badge">
               <Play size={12} fill="currentColor" /> {item.duration ?? "ویدیو"}
             </span>
+          )}
+          {item.type === "text" && (
+            <span className="duration-badge"><FileText size={12} /> نوشته</span>
           )}
         </div>
         {item.type === "video" && (

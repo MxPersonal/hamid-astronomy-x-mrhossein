@@ -33,6 +33,14 @@ function asMedia(row: Record<string, unknown>): MediaItem {
   };
 }
 
+function asTextPost(row: Record<string, unknown>): MediaItem {
+  return asMedia({ ...row, type: "text", category: "نوشته‌ها", video_url: null, duration: null, featured: false });
+}
+
+function isTextPost(id: string) {
+  return id.startsWith("text-");
+}
+
 export async function getSiteContent(): Promise<SiteContent> {
   const defaults: SiteContent = { ...SITE_DEFAULTS };
   if (!isDatabaseConfigured()) return defaults;
@@ -47,10 +55,17 @@ export async function getSiteContent(): Promise<SiteContent> {
 
 export async function getMediaItems(all = false): Promise<MediaItem[]> {
   if (!isDatabaseConfigured()) return initialMedia.filter((item) => all || item.published);
-  const rows = all
-    ? await db()`SELECT * FROM media_items ORDER BY created_at DESC, id DESC`
-    : await db()`SELECT * FROM media_items WHERE published = true ORDER BY created_at DESC, id DESC`;
-  return rows.map((row) => asMedia(row));
+  const sql = db();
+  const [mediaRows, postRows] = await Promise.all([
+    all
+      ? sql`SELECT * FROM media_items ORDER BY created_at DESC, id DESC`
+      : sql`SELECT * FROM media_items WHERE published = true ORDER BY created_at DESC, id DESC`,
+    all
+      ? sql`SELECT * FROM text_posts ORDER BY created_at DESC, id DESC`
+      : sql`SELECT * FROM text_posts WHERE published = true ORDER BY created_at DESC, id DESC`,
+  ]);
+  return [...mediaRows.map((row) => asMedia(row)), ...postRows.map((row) => asTextPost(row))]
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 export async function getCmsNotifications(): Promise<CmsNotification[]> {
@@ -77,6 +92,16 @@ export async function updateSiteContent(key: keyof SiteContent, value: string) {
 }
 
 export async function createMedia(input: NewMediaInput): Promise<MediaItem> {
+  if (input.type === "text") {
+    const id = "text-" + crypto.randomUUID();
+    const rows = await db()`INSERT INTO text_posts
+      (id, title, description, category, image, captured_at, published)
+      VALUES (${id}, ${input.title}, ${input.description}, 'نوشته‌ها',
+        ${input.image}, ${input.capturedAt}, ${input.published})
+      RETURNING *`;
+    await notify(input.published ? "نوشته جدید منتشر شد" : "پیش‌نویس نوشته ذخیره شد", input.title, "text");
+    return asTextPost(rows[0]);
+  }
   const id = crypto.randomUUID();
   const rows = await db()`INSERT INTO media_items
     (id, title, description, type, category, image, video_url, captured_at, published, featured)
@@ -88,6 +113,18 @@ export async function createMedia(input: NewMediaInput): Promise<MediaItem> {
 }
 
 export async function editMedia(id: string, input: NewMediaInput): Promise<MediaItem | null> {
+  if (isTextPost(id)) {
+    if (input.type !== "text") return null;
+    const rows = await db()`UPDATE text_posts SET
+      title = ${input.title}, description = ${input.description},
+      image = ${input.image}, captured_at = ${input.capturedAt},
+      published = ${input.published}
+      WHERE id = ${id} RETURNING *`;
+    if (!rows.length) return null;
+    await notify("نوشته ویرایش شد", input.title, "text");
+    return asTextPost(rows[0]);
+  }
+  if (input.type === "text") return null;
   const rows = await db()`UPDATE media_items SET
     title = ${input.title}, description = ${input.description}, type = ${input.type},
     category = ${input.category}, image = ${input.image}, video_url = ${input.videoUrl || null},
@@ -99,23 +136,31 @@ export async function editMedia(id: string, input: NewMediaInput): Promise<Media
 }
 
 export async function deleteMedia(id: string): Promise<boolean> {
-  const rows = await db()`DELETE FROM media_items WHERE id = ${id} RETURNING title`;
+  const rows = isTextPost(id)
+    ? await db()`DELETE FROM text_posts WHERE id = ${id} RETURNING title`
+    : await db()`DELETE FROM media_items WHERE id = ${id} RETURNING title`;
   if (!rows.length) return false;
   await notify("محتوا حذف شد", String(rows[0].title), "media");
   return true;
 }
 
 export async function toggleMediaPublish(id: string): Promise<MediaItem | null> {
-  const rows = await db()`UPDATE media_items SET published = NOT published WHERE id = ${id} RETURNING *`;
+  const rows = isTextPost(id)
+    ? await db()`UPDATE text_posts SET published = NOT published WHERE id = ${id} RETURNING *`
+    : await db()`UPDATE media_items SET published = NOT published WHERE id = ${id} RETURNING *`;
   if (!rows.length) return null;
   await notify(rows[0].published ? "اثر منتشر شد" : "اثر پیش‌نویس شد", String(rows[0].title), "media");
-  return asMedia(rows[0]);
+  return isTextPost(id) ? asTextPost(rows[0]) : asMedia(rows[0]);
 }
 
 export async function incrementMediaCounter(id: string, action: "like" | "view") {
-  const rows = action === "like"
-    ? await db()`UPDATE media_items SET likes = likes + 1 WHERE id = ${id} AND published = true RETURNING likes,views`
-    : await db()`UPDATE media_items SET views = views + 1 WHERE id = ${id} AND published = true RETURNING likes,views`;
+  const rows = isTextPost(id)
+    ? action === "like"
+      ? await db()`UPDATE text_posts SET likes = likes + 1 WHERE id = ${id} AND published = true RETURNING likes, views`
+      : await db()`UPDATE text_posts SET views = views + 1 WHERE id = ${id} AND published = true RETURNING likes, views`
+    : action === "like"
+      ? await db()`UPDATE media_items SET likes = likes + 1 WHERE id = ${id} AND published = true RETURNING likes, views`
+      : await db()`UPDATE media_items SET views = views + 1 WHERE id = ${id} AND published = true RETURNING likes, views`;
   return rows.length ? { likes: Number(rows[0].likes), views: Number(rows[0].views) } : null;
 }
 

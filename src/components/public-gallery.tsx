@@ -81,9 +81,9 @@ export function PublicGallery({
 
       <main id="top">
         <section className="hero" aria-labelledby="hero-title">
-          {featured && (
+          {(content.heroImage || featured?.image) && (
             <MediaImage
-              src={content.heroImage || featured.image}
+              src={content.heroImage || featured?.image || ""}
               alt=""
               priority
               sizes="100vw"

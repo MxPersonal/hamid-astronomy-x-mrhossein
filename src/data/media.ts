@@ -7,6 +7,7 @@ export const mediaCategories: Array<"همه" | MediaCategory> = [
   "منظومه شمسی",
   "ماه",
   "ویدیوها",
+  "نوشته‌ها",
 ];
 
 export const initialMedia: MediaItem[] = [

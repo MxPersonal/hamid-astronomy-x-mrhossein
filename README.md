@@ -3,7 +3,7 @@
 # 🌌 Hamid Astronomy
 ### Explore the Universe, One Frame at a Time
 
-**یک گالری فارسی برای روایت دیداری کیهان، تصاویر نجومی و ویدیوهای فضایی**
+**گالری نجومی فارسی برای تصاویر، ویدیوها و نوشته‌های مستقل علمی**
 
 [![Next.js](https://img.shields.io/badge/Next.js-16.3-000?logo=nextdotjs)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-149eca?logo=react)](https://react.dev/)
@@ -33,7 +33,7 @@ The website combines an editorial, responsive cosmic gallery with a custom, auth
 | 🖼️ Media viewer | Full-size image viewer, supported YouTube embeds and MP4/WebM playback |
 | 💜 Engagement | Persisted like and view counters |
 | 📝 Content CMS | Edit site identity, hero, headlines, descriptions, gallery, about section, footer, links and SEO fields |
-| 📷 Media CMS | Add, edit, remove, publish/unpublish photos and videos |
+| 📷 Media & text CMS | Add, edit, remove, publish/unpublish photos, videos and standalone articles |
 | 🔔 Notifications | Database-backed CMS activity feed and unread status |
 | 🔐 Admin security | Server-side credential validation, signed HttpOnly cookie, session expiry, same-origin checks |
 | 🌙 Visual design | Matching dark-mode public site and CMS; Persian-first, RTL, mobile-responsive |
@@ -74,7 +74,7 @@ src/
     globals.css                 Cosmic website + CMS design system
   components/
     public-gallery.tsx          Public gallery
-    media-modal.tsx             Images and video
+    media-modal.tsx             Images, video, and article reader
     admin-dashboard.tsx         CMS control panel
     site-content-editor.tsx     Site-wide text and image editing
     publish-modal.tsx           Media editor
@@ -105,7 +105,8 @@ Open `http://localhost:3000`. Set the secrets in `.env.local` before using the C
 
 | Variable | Purpose |
 |---|---|
-| `HAMID_ASTRONOMY_DATABASE_URL` | Preferred dedicated Neon pooled URL for this site |\n| `DATABASE_URL` | Fallback pooled URL for local setups |
+| `HAMID_ASTRONOMY_DATABASE_URL` | Preferred dedicated Neon pooled URL for this site |
+| `DATABASE_URL` | Fallback pooled URL for local setups |
 | `ADMIN_USERNAME` | Admin login username |
 | `ADMIN_PASSWORD` | Strong admin password, at least 12 characters |
 | `ADMIN_SESSION_SECRET` | Random HMAC signing secret, at least 48 characters |
@@ -125,11 +126,11 @@ The existing published demo entries were imported into the initial Hamid Astrono
 
 **Legacy browser data:** If the previous CMS stored media in `localStorage`, sign in **using that same browser and origin**. A one-time **«انتقال رسانه قدیمی»** button appears if custom items are detected. Review the count and approve the import. Old browser data is left intact. Items that exceed upload limits must be migrated manually.
 
-**Database tables:** `site_content` (editable text/URLs), `media_items` (gallery records and counters), `cms_notifications` (action history).
+**Database tables:** `site_content` (editable text/URLs), `media_items` (gallery records and counters), `cms_notifications` (action history), `text_posts` (independent text-only posts and optional cover image).
 
 ## 🎛️ CMS Guide
 
-Log in at `/admin/login`. The sidebar includes a media list and site-wide content editor. The top navigation includes **Back to Site**, **Notifications**, and **Logout**, also available on mobile. Media actions support draft/published states. Content changes are saved immediately to Neon and visible on the public website.
+Log in at `/admin/login`. The sidebar includes a media list and site-wide content editor. The top navigation includes **Back to Site**, **Notifications**, and **Logout**, also available on mobile. Choose **تصویر**, **ویدیو**, or **نوشته** under **انتشار محتوای جدید**. Text posts require a title and 10–10,000 characters of body text, accept paragraph breaks, and do not require a cover image. All content types support editing, drafts, publishing, deleting, and displaying in the public gallery. Existing items keep their type during edits. Content changes are saved immediately to Neon and visible on the public website.
 
 ### 📦 Media Storage Notes
 
@@ -155,7 +156,7 @@ npm run lint
 npm run build
 ```
 
-Also test the following manually: public gallery, filtering, image/video viewer, admin login/logout, upload, publish/draft, site text edits, notification creation and read state, mobile navbar, and database persistence across browsers.
+Also test the following manually: public gallery, filtering, image/video/article viewer, admin login/logout, upload, publish/draft, site text edits, notification creation and read state, mobile navbar, and database persistence across browsers.
 
 ## 🤝 Contributing & Project Scope
 

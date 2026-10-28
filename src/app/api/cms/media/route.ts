@@ -4,7 +4,7 @@ import { isSameOriginRequest } from "@/lib/request-security";
 import { createMedia, editMedia, toggleMediaPublish, deleteMedia } from "@/lib/cms-db";
 import type { MediaCategory, NewMediaInput } from "@/types/media";
 
-const categories: MediaCategory[] = ["سحابی‌ها", "کهکشان‌ها", "منظومه شمسی", "ماه", "ویدیوها"];
+const categories: MediaCategory[] = ["سحابی‌ها", "کهکشان‌ها", "منظومه شمسی", "ماه", "ویدیوها", "نوشته‌ها"];
 const MAX_REQUEST_BYTES = 4 * 1024 * 1024;
 
 async function allowed(request: Request): Promise<Response | null> {
@@ -21,10 +21,12 @@ function parseMedia(data: unknown): NewMediaInput | null {
   if (!data || typeof data !== "object") return null;
   const x = data as Record<string, unknown>;
   if (typeof x.title !== "string" || x.title.trim().length < 3 || x.title.length > 160 ||
-    typeof x.description !== "string" || x.description.length > 3000 ||
-    (x.type !== "image" && x.type !== "video") ||
+    typeof x.description !== "string" || x.description.trim().length < 10 ||
+    x.description.length > (x.type === "text" ? 10000 : 3000) ||
+    (x.type !== "image" && x.type !== "video" && x.type !== "text") ||
     !categories.includes(x.category as MediaCategory) ||
-    typeof x.image !== "string" || !validImage(x.image) ||
+    typeof x.image !== "string" ||
+    (x.type === "text" ? (x.image !== "" && !validImage(x.image)) : !validImage(x.image)) ||
     typeof x.capturedAt !== "string" || x.capturedAt.length > 120 ||
     typeof x.published !== "boolean") return null;
   let videoUrl: string | undefined;
@@ -43,7 +45,7 @@ function parseMedia(data: unknown): NewMediaInput | null {
   }
   return {
     title: x.title.trim(), description: x.description.trim(), type: x.type,
-    category: x.type === "video" ? "ویدیوها" : x.category as MediaCategory,
+    category: x.type === "video" ? "ویدیوها" : x.type === "text" ? "نوشته‌ها" : x.category as MediaCategory,
     image: x.image, videoUrl, capturedAt: x.capturedAt.trim(), published: x.published,
   };
 }
@@ -61,7 +63,7 @@ export async function POST(request: Request) {
   const auth = await allowed(request); if (auth) return auth;
   try {
     const { input } = await readInput(request);
-    if (!input) return NextResponse.json({ error: "مشخصات رسانه نامعتبر است؛ برای ویدیو لینک HTTPS معتبر وارد کنید" }, { status: 400 });
+    if (!input) return NextResponse.json({ error: "مشخصات محتوا نامعتبر است؛ برای نوشته فقط عنوان و متن لازم است" }, { status: 400 });
     return NextResponse.json({ item: await createMedia(input) }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "ثبت رسانه در پایگاه داده ناموفق بود" }, { status: 500 });

@@ -1097,3 +1097,97 @@ a {
   .welcome-actions { flex-direction: column; align-items: stretch; }
   .welcome-actions button { justify-content: center; }
 }
+
+
+/* Standalone astronomy writings, with or without images */
+.gallery-card-text {
+  border-color: rgba(168, 140, 253, .35);
+  background: #101225;
+}
+.gallery-card-text .gallery-card-shade {
+  background: linear-gradient(180deg,rgba(6,6,18,.04) 0%, rgba(8,9,23,.72) 39%, #0b0b18 100%);
+}
+.gallery-text-art {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 24% 20%, rgba(90,215,235,.17), transparent 34%),
+    radial-gradient(circle at 78% 70%, rgba(143,109,244,.24), transparent 43%),
+    repeating-linear-gradient(135deg, transparent 0 30px, rgba(255,255,255,.015) 30px 31px),
+    #0b0c1c;
+  color: rgba(204,190,255,.55);
+}
+.gallery-text-orbit {
+  position: absolute;
+  width: min(62%,280px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(201,184,255,.18);
+  border-radius: 50%;
+  transform: rotate(-22deg) scaleY(.6);
+  box-shadow: 0 0 65px rgba(126,95,214,.12);
+}
+.gallery-card-text .gallery-card-copy p,
+.gallery-card:not(:nth-child(1)).gallery-card-text .gallery-card-copy p {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
+  white-space: pre-line;
+  color: #c0b9d2;
+  font-size: 12px;
+  line-height: 1.95;
+  max-width: 620px;
+  margin: 12px 0 15px;
+}
+.gallery-card-text .gallery-card-copy h3 { font-size: clamp(19px,2vw,26px); line-height: 1.55; }
+.gallery-card-text .gallery-stats { color: #aaa0bb; }
+.gallery-card-text .gallery-card-top > .duration-badge { display: inline-flex; gap: 5px; align-items: center; }
+
+.media-modal-text { width: min(860px,100%); }
+.media-modal-text .modal-copy { padding: clamp(24px,4vw,48px); }
+.media-modal-text .modal-visual { height: min(40vh,360px); }
+.media-modal-text .modal-kicker { font-size: 12px; }
+.media-modal-text .modal-copy h2 { margin: 16px 0 20px; line-height: 1.55; font-size: clamp(23px,3vw,36px); }
+.modal-text-body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  direction: rtl;
+  unicode-bidi: plaintext;
+  line-height: 2.2;
+  font-size: 15px;
+  color: #d4d0de;
+  max-width: 72ch;
+}
+.media-modal-text .modal-meta { padding-top: 20px; border-top: 1px solid rgba(255,255,255,.12); font-size: 11px; }
+
+.admin-shell .stats-grid { grid-template-columns: repeat(5,minmax(0,1fr)); }
+.admin-shell .content-thumb .text-thumb {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  background: linear-gradient(135deg,rgba(90,215,235,.14),rgba(143,109,244,.3));
+  color: #c9b8ff;
+}
+.admin-shell .type-switch button:disabled { opacity: .55; cursor: not-allowed; }
+.admin-shell .type-switch button.active:disabled { opacity: 1; }
+.admin-shell .content-type-hint { margin: -7px 0 0; font-size: 11px; line-height: 1.8; color: #aaa1c5; }
+.admin-shell .field-label:has(textarea) textarea { min-height: 110px; font-size: 12px; }
+.admin-shell .field-label:has(textarea) > small { position: static; align-self: flex-end; }
+.admin-shell .publish-button:disabled { opacity: .6; cursor: wait; }
+.admin-shell .stats-grid article { min-width: 0; }
+@media (max-width: 1050px) {
+  .admin-shell .stats-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media (max-width: 740px) {
+  .gallery-card-text .gallery-card-copy p,
+  .gallery-card:not(:nth-child(1)).gallery-card-text .gallery-card-copy p { -webkit-line-clamp: 3; font-size: 11px; }
+  .media-modal-text .modal-copy { padding: 26px 20px; }
+  .modal-text-body { font-size: 14px; }
+}
+@media (max-width: 430px) {
+  .admin-shell .stats-grid { grid-template-columns: 1fr; }
+  .admin-shell .type-switch { flex-wrap: wrap; }
+  .admin-shell .type-switch button { min-width: 28%; }
+  .admin-shell .admin-breadcrumb strong { font-size: 10px; }
+}

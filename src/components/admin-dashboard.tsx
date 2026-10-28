@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import {
   BarChart3, Bell, CheckCircle2, CircleUserRound, Eye, FileImage, Globe2, Heart,
   Images, LayoutDashboard, LogOut, Menu, Plus, Search, Settings,
-  Trash2, Video, X, Pencil, Check,
+  Trash2, Video, X, Pencil, Check, FileText,
 } from "lucide-react";
 import { formatCompactNumber, toPersianDate } from "@/lib/format";
 import type { MediaItem, NewMediaInput } from "@/types/media";
@@ -46,6 +46,7 @@ export function AdminDashboard({
     published: items.filter((item) => item.published).length,
     views: items.reduce((sum, item) => sum + item.views, 0),
     likes: items.reduce((sum, item) => sum + item.likes, 0),
+    posts: items.filter((item) => item.type === "text").length,
     videos: items.filter((item) => item.type === "video").length,
   }), [items]);
   const unread = notifications.filter((item) => !item.read_at).length;
@@ -80,7 +81,7 @@ export function AdminDashboard({
         <nav aria-label="ناوبری مدیریت">
           <span>فضای کاری</span>
           <a className="active" href="#dashboard" onClick={closeMenu}><LayoutDashboard size={19} /> نمای کلی</a>
-          <a href="#contents" onClick={closeMenu}><Images size={19} /> رسانه‌ها <b>{items.length.toLocaleString("fa-IR")}</b></a>
+          <a href="#contents" onClick={closeMenu}><Images size={19} /> محتواها <b>{items.length.toLocaleString("fa-IR")}</b></a>
           <a href="#analytics" onClick={closeMenu}><BarChart3 size={19} /> آمار بازدید</a>
           <span>مدیریت سایت</span>
           <a href="#settings" onClick={closeMenu}><Settings size={19} /> تمام متن‌ها و تصاویر</a>
@@ -95,7 +96,7 @@ export function AdminDashboard({
       <div className="admin-main">
         <header className="admin-topbar">
           <button className="menu-button" type="button" onClick={() => setMenuOpen(true)} aria-label="بازکردن منو"><Menu size={21} /></button>
-          <div className="admin-breadcrumb"><span>{content.brandName}</span><b>/</b><strong>CMS</strong></div>
+          <div className="admin-breadcrumb"><span>{content.brandName}</span><b>/</b><strong>پنل مدیریت سایت</strong></div>
           <div className="topbar-actions">
             <button type="button" className="view-site-topbar" onClick={onViewSite}>
               <Globe2 size={17} /><span>بازگشت به سایت</span>
@@ -109,7 +110,7 @@ export function AdminDashboard({
               {notificationsOpen && (
                 <section className="notifications-panel" aria-label="اعلان‌های مدیریت">
                   <div className="notifications-heading">
-                    <strong>اعلان‌های CMS</strong>
+                    <strong>اعلان‌های پنل مدیریت</strong>
                     <button type="button" disabled={unread === 0} onClick={() =>
                       void perform(onReadNotifications, "اعلان‌ها خوانده شدند").catch(() => {})}>
                       <Check size={14} /> خواندن همه
@@ -150,12 +151,13 @@ export function AdminDashboard({
             <article><span className="stat-icon purple"><FileImage size={21} /></span><div><small>آثار منتشرشده</small><strong>{stats.published.toLocaleString("fa-IR")}</strong></div></article>
             <article><span className="stat-icon cyan"><Eye size={21} /></span><div><small>مجموع بازدیدها</small><strong>{formatCompactNumber(stats.views)}</strong></div></article>
             <article><span className="stat-icon rose"><Heart size={21} /></span><div><small>مجموع پسندها</small><strong>{formatCompactNumber(stats.likes)}</strong></div></article>
-            <article><span className="stat-icon amber"><Video size={21} /></span><div><small>ویدیوها</small><strong>{stats.videos.toLocaleString("fa-IR")}</strong></div></article>
+            <article><span className="stat-icon amber"><FileText size={21} /></span><div><small>نوشته‌ها</small><strong>{stats.posts.toLocaleString("fa-IR")}</strong></div></article>
+            <article><span className="stat-icon cyan"><Video size={21} /></span><div><small>ویدیوها</small><strong>{stats.videos.toLocaleString("fa-IR")}</strong></div></article>
           </section>
 
           <section className="content-panel" id="contents">
             <div className="content-panel-header">
-              <div><h2>رسانه‌ها و آثار</h2><p>افزودن، ویرایش، حذف و انتشار عکس‌ها و ویدیوها</p></div>
+              <div><h2>رسانه‌ها و آثار</h2><p>افزودن، ویرایش، حذف و انتشار نوشته‌ها، عکس‌ها و ویدیوها</p></div>
               <label className="admin-search"><Search size={17} /><span className="sr-only">جست‌وجوی محتوا</span>
                 <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="جست‌وجوی محتوا..." /></label>
             </div>
@@ -168,8 +170,8 @@ export function AdminDashboard({
               {filteredItems.map((item) => (
                 <article className="table-row" role="row" key={item.id}>
                   <div className="content-identity" role="cell">
-                    <div className="content-thumb"><MediaImage src={item.image} alt="" className="object-cover" />{item.type === "video" && <Video size={14} />}</div>
-                    <div><strong>{item.title}</strong><small>{item.type === "video" ? "ویدیو" : "تصویر"}</small></div>
+                    <div className="content-thumb">{item.image ? <MediaImage src={item.image} alt="" className="object-cover" /> : <span className="text-thumb"><FileText size={21} /></span>}{item.type === "video" && <Video size={14} />}</div>
+                    <div><strong>{item.title}</strong><small>{item.type === "video" ? "ویدیو" : item.type === "text" ? "نوشته" : "تصویر"}</small></div>
                   </div>
                   <span role="cell" data-label="دسته‌بندی">{item.category}</span>
                   <div role="cell" data-label="وضعیت">

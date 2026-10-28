@@ -38,7 +38,7 @@ export function MediaModal({ item, onClose, onLike }: MediaModalProps) {
         if (event.currentTarget === event.target) onClose();
       }}
     >
-      <article className="media-modal">
+      <article className={`media-modal${item.type === "text" ? " media-modal-text" : ""}`}>
         <button
           ref={closeButtonRef}
           type="button"
@@ -49,7 +49,7 @@ export function MediaModal({ item, onClose, onLike }: MediaModalProps) {
           <X size={20} />
         </button>
 
-        <div className="modal-visual">
+        {(item.type !== "text" || Boolean(item.image)) && <div className="modal-visual">
           {item.type === "video" && item.videoUrl ? (
             item.videoUrl.includes("youtube.com/embed") ? (
               <iframe
@@ -76,16 +76,18 @@ export function MediaModal({ item, onClose, onLike }: MediaModalProps) {
               <span>آدرس ویدیو در دسترس نیست</span>
             </div>
           )}
-        </div>
+        </div>}
 
         <div className="modal-copy">
           <div className="modal-kicker">
             <span>{item.category}</span>
             <span>•</span>
-            <span>{item.type === "video" ? "ویدیو" : "تصویر"}</span>
+            <span>{item.type === "video" ? "ویدیو" : item.type === "text" ? "نوشته" : "تصویر"}</span>
           </div>
           <h2 id="media-modal-title">{item.title}</h2>
-          <p>{item.description}</p>
+          {item.type === "text"
+            ? <div className="modal-text-body">{item.description}</div>
+            : <p>{item.description}</p>}
           <div className="modal-meta">
             <span>
               <CalendarDays size={16} /> {item.capturedAt}

@@ -1,11 +1,12 @@
-export type MediaType = "image" | "video";
+export type MediaType = "image" | "video" | "text";
 
 export type MediaCategory =
   | "سحابی‌ها"
   | "کهکشان‌ها"
   | "منظومه شمسی"
   | "ماه"
-  | "ویدیوها";
+  | "ویدیوها"
+  | "نوشته‌ها";
 
 export interface MediaItem {
   id: string;
