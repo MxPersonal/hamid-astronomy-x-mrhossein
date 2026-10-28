@@ -9,6 +9,8 @@ import type {
   MediaItem,
 } from "@/types/media";
 import { MediaImage } from "./media-image";
+import { DEFAULT_MEDIA_SEO } from "@/lib/media-seo";
+import type { MediaSeo } from "@/types/media";
 
 interface PublishModalProps {
   onClose: () => void;
@@ -49,6 +51,8 @@ export function PublishModal({ onClose, onPublish, initial, categories, onCreate
     }).format(new Date()),
   );
   const [published, setPublished] = useState(initial?.published ?? true);
+  const [seo, setSeo] = useState<MediaSeo>({ ...DEFAULT_MEDIA_SEO, ...initial?.seo });
+  const changeSeo = <K extends keyof MediaSeo>(key: K, value: MediaSeo[K]) => setSeo((prev) => ({ ...prev, [key]: value }));
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [addingCategory, setAddingCategory] = useState(false);
@@ -150,6 +154,7 @@ export function PublishModal({ onClose, onPublish, initial, categories, onCreate
       videoUrl: type === "video" ? normalizeVideoUrl(videoUrl) : undefined,
       capturedAt: capturedAt.trim(),
       published,
+      seo,
       });
     } catch (error) {
       setError(error instanceof Error ? error.message : "ذخیره ناموفق بود");
@@ -349,6 +354,64 @@ export function PublishModal({ onClose, onPublish, initial, categories, onCreate
             </label>
           </div>
         </div>
+
+        <fieldset className="seo-edit-panel">
+          <legend>تنظیمات پیشرفته SEO برای همین محتوا</legend>
+          <p className="seo-edit-note">
+            همه فیلدها به‌جز وضعیت ایندکس اختیاری هستند. مقادیر خالی از عنوان، توضیح و تصویر اصلی محتوا استفاده می‌کنند.
+          </p>
+          <div className="seo-edit-grid">
+            <label className="field-label">
+              آدرس کوتاه (Slug انگلیسی)
+              <input dir="ltr" value={seo.slug} maxLength={90}
+                placeholder={initial?.id ?? "my-astronomy-photo"}
+                onChange={(event) => changeSeo("slug", event.target.value.toLowerCase())} />
+              <small>فقط حروف انگلیسی کوچک، عدد و خط تیره. تغییر Slug باعث تغییر نشانی اصلی محتوا می‌شود.</small>
+            </label>
+            <label className="field-label">
+              عنوان اختصاصی نتایج جست‌وجو
+              <input value={seo.title} maxLength={160}
+                placeholder="در صورت خالی بودن از عنوان محتوا استفاده می‌شود"
+                onChange={(event) => changeSeo("title", event.target.value)} />
+            </label>
+            <label className="field-label">
+              توضیح متا (Meta Description)
+              <textarea rows={3} maxLength={320} value={seo.description}
+                placeholder="توضیح کوتاه و دقیق برای نتیجه گوگل"
+                onChange={(event) => changeSeo("description", event.target.value)} />
+            </label>
+            <label className="field-label">
+              متن جایگزین تصویر (Alt Text)
+              <textarea rows={3} maxLength={300} value={seo.altText}
+                placeholder="شرح واقعی محتوای تصویر، نه تکرار کلمات کلیدی"
+                onChange={(event) => changeSeo("altText", event.target.value)} />
+            </label>
+            <label className="field-label">
+              آدرس تصویر شبکه‌های اجتماعی (HTTPS)
+              <input dir="ltr" type="url" maxLength={2048} value={seo.shareImage}
+                placeholder="https://example.com/cover.webp"
+                onChange={(event) => changeSeo("shareImage", event.target.value)} />
+            </label>
+            <label className="field-label">
+              منبع علمی یا اعتبار اثر (HTTPS)
+              <input dir="ltr" type="url" maxLength={2048} value={seo.sourceUrl}
+                placeholder="https://science.nasa.gov/..."
+                onChange={(event) => changeSeo("sourceUrl", event.target.value)} />
+            </label>
+            <label className="field-label">
+              تاریخ واقعی انتشار (در صورت اطلاع)
+              <input dir="ltr" type="date" value={seo.publishedAt}
+                onChange={(event) => changeSeo("publishedAt", event.target.value)} />
+              <small>تاریخ ساخت رکورد و تاریخ ثبت عکس، لزوماً تاریخ انتشار نیستند.</small>
+            </label>
+            <label className="seo-index-toggle">
+              <input type="checkbox" checked={seo.indexable}
+                onChange={(event) => changeSeo("indexable", event.target.checked)} />
+              <span>اجازه ایندکس‌شدن در موتورهای جست‌وجو</span>
+              <small>خاموش: صفحه عمومی می‌ماند، اما noindex می‌گیرد و از Sitemap حذف می‌شود.</small>
+            </label>
+          </div>
+        </fieldset>
 
         {error && <p className="form-error">{error}</p>}
 
