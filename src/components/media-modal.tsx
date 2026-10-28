@@ -66,7 +66,7 @@ export function MediaModal({ item, onClose, onLike }: MediaModalProps) {
           ) : (
             <MediaImage
               src={item.image}
-              alt={item.title}
+              alt={item.seo?.altText || item.title}
               sizes="(max-width: 900px) 100vw, 70vw"
               className="object-cover"
               priority
@@ -101,7 +101,7 @@ export function MediaModal({ item, onClose, onLike }: MediaModalProps) {
               <Heart size={16} /> {formatCompactNumber(item.likes)} پسند
             </button>
           </div>
-          <Link className="media-modal-permalink" href={mediaPermalink(item.id)} prefetch={false}>
+          <Link className="media-modal-permalink" href={mediaPermalink(item)} prefetch={false}>
             مشاهده صفحه کامل و اشتراک‌گذاری
           </Link>
         </div>
