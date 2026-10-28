@@ -411,6 +411,97 @@ export function PublishModal({ onClose, onPublish, initial, categories, onCreate
               <small>خاموش: صفحه عمومی می‌ماند، اما noindex می‌گیرد و از Sitemap حذف می‌شود.</small>
             </label>
           </div>
+          <div className="aeo-editor">
+            <h3>محتوای پاسخ‌محور و منابع علمی (AEO / GEO)</h3>
+            <p className="seo-edit-note">فقط اطلاعاتی را وارد کنید که بررسی علمی شده‌اند. این بخش بدون تولید خودکار محتوا مستقیماً در صفحه مستقل نمایش داده می‌شود.</p>
+
+            <label className="field-label">
+              پاسخ کوتاه و مستقیم به پرسش اصلی
+              <textarea rows={4} maxLength={1200} value={seo.answer}
+                placeholder="چکیده دقیق، قابل‌فهم و تأییدشده درباره موضوع؛ در صورت نبود شواهد خالی بماند"
+                onChange={(event) => changeSeo("answer", event.target.value)} />
+              <small>پاسخ در بالای مقاله با تیتر «پاسخ کوتاه» دیده می‌شود و در Article Schema فقط برای نوشته‌ها استفاده خواهد شد.</small>
+            </label>
+
+            <label className="field-label">
+              نام واقعی نویسنده یا تهیه‌کننده (اختیاری)
+              <input value={seo.authorName} maxLength={120}
+                placeholder="نام واقعی؛ عنوان یا مدرک ساختگی وارد نکنید"
+                onChange={(event) => changeSeo("authorName", event.target.value)} />
+            </label>
+
+            <label className="field-label">
+              نوع واقعی تصویر (در صورت اطلاع)
+              <select value={seo.visualKind}
+                onChange={(event) => changeSeo("visualKind", event.target.value as MediaSeo["visualKind"])}>
+                <option value="unspecified">تعیین نشده</option>
+                <option value="observation">عکس یا داده رصدی واقعی</option>
+                <option value="illustration">تصویرسازی هنری</option>
+                <option value="simulation">شبیه‌سازی علمی</option>
+                <option value="ai-generated">تصویر تولیدشده با هوش مصنوعی</option>
+              </select>
+              <small>برچسب فقط با انتخاب آگاهانه مدیر، در صفحه عمومی نمایش داده می‌شود.</small>
+            </label>
+
+            <div className="aeo-field-heading">
+              <strong>پرسش‌های متداول تأییدشده</strong>
+              <button type="button" disabled={seo.faqs.length >= 8}
+                onClick={() => changeSeo("faqs", [...seo.faqs, { question: "", answer: "" }])}>
+                + افزودن پرسش
+              </button>
+            </div>
+            {seo.faqs.map((faq, index) => (
+              <div className="aeo-entry" key={index}>
+                <label className="field-label">
+                  پرسش {index + 1}
+                  <input value={faq.question} maxLength={220}
+                    onChange={(event) => changeSeo("faqs", seo.faqs.map((value, i) =>
+                      i === index ? { ...value, question: event.target.value } : value))} />
+                </label>
+                <label className="field-label">
+                  پاسخ مستند
+                  <textarea rows={3} value={faq.answer} maxLength={1200}
+                    onChange={(event) => changeSeo("faqs", seo.faqs.map((value, i) =>
+                      i === index ? { ...value, answer: event.target.value } : value))} />
+                </label>
+                <button type="button" className="aeo-remove"
+                  onClick={() => changeSeo("faqs", seo.faqs.filter((_, i) => i !== index))}>
+                  حذف پرسش
+                </button>
+              </div>
+            ))}
+
+            <div className="aeo-field-heading">
+              <strong>منابع و استنادهای علمی</strong>
+              <button type="button" disabled={seo.references.length >= 10}
+                onClick={() => changeSeo("references", [...seo.references, { title: "", url: "" }])}>
+                + افزودن منبع
+              </button>
+            </div>
+            {seo.references.map((reference, index) => (
+              <div className="aeo-entry" key={index}>
+                <label className="field-label">
+                  عنوان واقعی منبع
+                  <input value={reference.title} maxLength={180}
+                    placeholder="عنوان مقاله، گزارش، رصدخانه یا نشریه"
+                    onChange={(event) => changeSeo("references", seo.references.map((value, i) =>
+                      i === index ? { ...value, title: event.target.value } : value))} />
+                </label>
+                <label className="field-label">
+                  آدرس HTTPS منبع
+                  <input dir="ltr" type="url" value={reference.url} maxLength={2048}
+                    placeholder="https://science.nasa.gov/..."
+                    onChange={(event) => changeSeo("references", seo.references.map((value, i) =>
+                      i === index ? { ...value, url: event.target.value } : value))} />
+                </label>
+                <button type="button" className="aeo-remove"
+                  onClick={() => changeSeo("references", seo.references.filter((_, i) => i !== index))}>
+                  حذف منبع
+                </button>
+              </div>
+            ))}
+            <small className="aeo-hint">این منابع باید ادعاهای متن را واقعاً پشتیبانی کنند؛ افزودن URL به‌تنهایی تأیید علمی ایجاد نمی‌کند.</small>
+          </div>
         </fieldset>
 
         {error && <p className="form-error">{error}</p>}
