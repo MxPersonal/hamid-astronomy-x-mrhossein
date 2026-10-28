@@ -201,8 +201,8 @@ export function PublicGallery({
             <i />
           </span>
           <span>
-            <strong>سُها</strong>
-            <small>روایت بی‌کران</small>
+            <strong>{content.brandName}</strong>
+            <small>{content.brandTagline}</small>
           </span>
         </a>
         <p>{content.footerDescription}</p>
