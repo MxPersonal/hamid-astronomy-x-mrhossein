@@ -10,19 +10,12 @@ import type {
 } from "@/types/media";
 import { MediaImage } from "./media-image";
 
-const categories: MediaCategory[] = [
-  "سحابی‌ها",
-  "کهکشان‌ها",
-  "منظومه شمسی",
-  "ماه",
-  "ویدیوها",
-  "نوشته‌ها",
-];
-
 interface PublishModalProps {
   onClose: () => void;
   onPublish: (input: NewMediaInput) => Promise<void>;
   initial?: MediaItem;
+  categories: MediaCategory[];
+  onCreateCategory: (name: string) => Promise<string>;
 }
 
 function normalizeVideoUrl(value: string): string {
@@ -41,11 +34,11 @@ function normalizeVideoUrl(value: string): string {
   return trimmed;
 }
 
-export function PublishModal({ onClose, onPublish, initial }: PublishModalProps) {
+export function PublishModal({ onClose, onPublish, initial, categories, onCreateCategory }: PublishModalProps) {
   const [type, setType] = useState<MediaType>(initial?.type ?? "image");
   const [title, setTitle] = useState(initial?.title ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
-  const [category, setCategory] = useState<MediaCategory>(initial?.category ?? "سحابی‌ها");
+  const [category, setCategory] = useState<MediaCategory>(initial?.category ?? (categories.includes("سحابی‌ها") ? "سحابی‌ها" : categories[0] || ""));
   const [image, setImage] = useState(initial?.image ?? "");
   const [videoUrl, setVideoUrl] = useState(initial?.videoUrl ?? "");
   const [capturedAt, setCapturedAt] = useState(initial?.capturedAt ??
@@ -58,6 +51,9 @@ export function PublishModal({ onClose, onPublish, initial }: PublishModalProps)
   const [published, setPublished] = useState(initial?.published ?? true);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [addingCategory, setAddingCategory] = useState(false);
+  const [newCategory, setNewCategory] = useState("");
+  const [categoryBusy, setCategoryBusy] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -93,6 +89,27 @@ export function PublishModal({ onClose, onPublish, initial }: PublishModalProps)
     reader.readAsDataURL(file);
   };
 
+  const saveCategory = async () => {
+    if (categoryBusy) return;
+    const name = newCategory.trim().replace(/\\s+/g, " ");
+    if (name.length < 2 || name.length > 60) {
+      setError("نام دسته‌بندی باید بین ۲ تا ۶۰ نویسه باشد.");
+      return;
+    }
+    setCategoryBusy(true);
+    setError("");
+    try {
+      const created = await onCreateCategory(name);
+      setCategory(created);
+      setNewCategory("");
+      setAddingCategory(false);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "ساخت دسته‌بندی ناموفق بود");
+    } finally {
+      setCategoryBusy(false);
+    }
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const cleanTitle = title.trim();
@@ -107,6 +124,10 @@ export function PublishModal({ onClose, onPublish, initial }: PublishModalProps)
     }
     if (cleanDescription.length > (type === "text" ? 10000 : 3000)) {
       setError("متن بیش از اندازه طولانی است.");
+      return;
+    }
+    if (!category || !categories.includes(category)) {
+      setError("ابتدا دسته‌بندی معتبری انتخاب یا ایجاد کنید.");
       return;
     }
     if (type !== "text" && !image) {
@@ -124,7 +145,7 @@ export function PublishModal({ onClose, onPublish, initial }: PublishModalProps)
       title: cleanTitle,
       description: cleanDescription,
       type,
-      category: type === "video" ? "ویدیوها" : type === "text" ? "نوشته‌ها" : category,
+      category,
       image: image.trim(),
       videoUrl: type === "video" ? normalizeVideoUrl(videoUrl) : undefined,
       capturedAt: capturedAt.trim(),
@@ -165,7 +186,7 @@ export function PublishModal({ onClose, onPublish, initial }: PublishModalProps)
               <button
                 type="button"
                 className={type === "image" ? "active" : ""}
-                onClick={() => { setType("image"); if (category === "ویدیوها" || category === "نوشته‌ها") setCategory("سحابی‌ها"); }}
+                onClick={() => { setType("image"); setCategory(categories.includes("سحابی‌ها") ? "سحابی‌ها" : categories[0] || ""); }}
                 disabled={Boolean(initial)}
               >
                 <ImagePlus size={17} /> تصویر
@@ -175,14 +196,14 @@ export function PublishModal({ onClose, onPublish, initial }: PublishModalProps)
                 className={type === "video" ? "active" : ""}
                 onClick={() => {
                   setType("video");
-                  setCategory("ویدیوها");
+                  setCategory(categories.includes("ویدیوها") ? "ویدیوها" : categories[0] || "");
                 }}
                 disabled={Boolean(initial)}
               >
                 <UploadCloud size={17} /> ویدیو
               </button>
               <button type="button" className={type === "text" ? "active" : ""}
-                onClick={() => { setType("text"); setCategory("نوشته‌ها"); }}
+                onClick={() => { setType("text"); setCategory(categories.includes("نوشته‌ها") ? "نوشته‌ها" : categories[0] || ""); }}
                 disabled={Boolean(initial)}>
                 <FileText size={17} /> نوشته
               </button>
@@ -217,11 +238,10 @@ export function PublishModal({ onClose, onPublish, initial }: PublishModalProps)
               <label className="field-label">
                 دسته‌بندی
                 <select
-                  value={type === "video" ? "ویدیوها" : type === "text" ? "نوشته‌ها" : category}
+                  value={category}
                   onChange={(event) =>
                     setCategory(event.target.value as MediaCategory)
                   }
-                  disabled={type === "video" || type === "text"}
                 >
                   {categories.map((item) => (
                     <option key={item}>{item}</option>
@@ -235,6 +255,33 @@ export function PublishModal({ onClose, onPublish, initial }: PublishModalProps)
                   onChange={(event) => setCapturedAt(event.target.value)}
                 />
               </label>
+            </div>
+
+            <div className="inline-category-creator">
+              <button type="button" className="inline-category-toggle"
+                onClick={() => { setAddingCategory((open) => !open); setError(""); }}>
+                {addingCategory ? "بستن ساخت دسته‌بندی" : "+ افزودن دسته‌بندی جدید"}
+              </button>
+              {addingCategory && (
+                <div className="inline-category-form">
+                  <label htmlFor="inline-new-category">نام دسته‌بندی جدید</label>
+                  <div>
+                    <input id="inline-new-category" value={newCategory}
+                      maxLength={60} placeholder="مثلاً: عکاسی از آسمان شب"
+                      onChange={(event) => setNewCategory(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault();
+                          void saveCategory();
+                        }
+                      }} />
+                    <button type="button" disabled={categoryBusy || newCategory.trim().length < 2}
+                      onClick={() => void saveCategory()}>
+                      {categoryBusy ? "در حال ثبت..." : "ساخت و انتخاب"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {type === "video" && (

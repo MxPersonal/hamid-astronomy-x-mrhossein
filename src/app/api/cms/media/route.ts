@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import { hasValidAdminSession } from "@/lib/admin-auth";
 import { isSameOriginRequest } from "@/lib/request-security";
-import { createMedia, editMedia, toggleMediaPublish, deleteMedia } from "@/lib/cms-db";
+import { createMedia, editMedia, toggleMediaPublish, deleteMedia, siteCategoryExists } from "@/lib/cms-db";
 import type { MediaCategory, NewMediaInput } from "@/types/media";
 
-const categories: MediaCategory[] = ["سحابی‌ها", "کهکشان‌ها", "منظومه شمسی", "ماه", "ویدیوها", "نوشته‌ها"];
 const MAX_REQUEST_BYTES = 4 * 1024 * 1024;
 
 async function allowed(request: Request): Promise<Response | null> {
@@ -24,7 +23,7 @@ function parseMedia(data: unknown): NewMediaInput | null {
     typeof x.description !== "string" || x.description.trim().length < 10 ||
     x.description.length > (x.type === "text" ? 10000 : 3000) ||
     (x.type !== "image" && x.type !== "video" && x.type !== "text") ||
-    !categories.includes(x.category as MediaCategory) ||
+    typeof x.category !== "string" || x.category.length < 2 || x.category.length > 60 || x.category === "همه" ||
     typeof x.image !== "string" ||
     (x.type === "text" ? (x.image !== "" && !validImage(x.image)) : !validImage(x.image)) ||
     typeof x.capturedAt !== "string" || x.capturedAt.length > 120 ||
@@ -45,7 +44,7 @@ function parseMedia(data: unknown): NewMediaInput | null {
   }
   return {
     title: x.title.trim(), description: x.description.trim(), type: x.type,
-    category: x.type === "video" ? "ویدیوها" : x.type === "text" ? "نوشته‌ها" : x.category as MediaCategory,
+    category: x.category.trim() as MediaCategory,
     image: x.image, videoUrl, capturedAt: x.capturedAt.trim(), published: x.published,
   };
 }
@@ -64,6 +63,7 @@ export async function POST(request: Request) {
   try {
     const { input } = await readInput(request);
     if (!input) return NextResponse.json({ error: "مشخصات محتوا نامعتبر است؛ برای نوشته فقط عنوان و متن لازم است" }, { status: 400 });
+    if (!(await siteCategoryExists(input.category))) return NextResponse.json({ error: "دسته‌بندی انتخاب‌شده وجود ندارد؛ ابتدا آن را بسازید" }, { status: 400 });
     return NextResponse.json({ item: await createMedia(input) }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "ثبت رسانه در پایگاه داده ناموفق بود" }, { status: 500 });
@@ -74,6 +74,7 @@ export async function PUT(request: Request) {
   try {
     const { input, id } = await readInput(request);
     if (!input || !id || id.length > 200) return NextResponse.json({ error: "مشخصات نامعتبر" }, { status: 400 });
+    if (!(await siteCategoryExists(input.category))) return NextResponse.json({ error: "دسته‌بندی انتخاب‌شده معتبر نیست" }, { status: 400 });
     const item = await editMedia(id, input);
     return item ? NextResponse.json({ item }) : NextResponse.json({ error: "محتوا پیدا نشد" }, { status: 404 });
   } catch {

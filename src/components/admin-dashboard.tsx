@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import {
   BarChart3, Bell, CheckCircle2, CircleUserRound, Eye, FileImage, Globe2, Heart,
   Images, LayoutDashboard, LogOut, Menu, Plus, Search, Settings,
@@ -15,6 +15,8 @@ import { SiteContentEditor } from "./site-content-editor";
 
 interface Props {
   items: MediaItem[];
+  categories: string[];
+  onCreateCategory: (name: string) => Promise<string>;
   content: SiteContent;
   notifications: CmsNotification[];
   legacyCount: number;
@@ -31,7 +33,7 @@ interface Props {
 }
 
 export function AdminDashboard({
-  items, content, notifications, legacyCount, importingLegacy, onImportLegacy, onAdd, onEdit, onDelete, onTogglePublished,
+  items, categories, onCreateCategory, content, notifications, legacyCount, importingLegacy, onImportLegacy, onAdd, onEdit, onDelete, onTogglePublished,
   onSaveContent, onReadNotifications, onLogout, onViewSite,
 }: Props) {
   const [showPublish, setShowPublish] = useState(false);
@@ -39,6 +41,9 @@ export function AdminDashboard({
   const [menuOpen, setMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [newCategory, setNewCategory] = useState("");
+  const [categoryError, setCategoryError] = useState("");
+  const [savingCategory, setSavingCategory] = useState(false);
   const [toast, setToast] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -68,6 +73,21 @@ export function AdminDashboard({
     setEditing(null);
     setShowPublish(false);
   };
+  const addCategory = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!newCategory.trim() || savingCategory) return;
+    setCategoryError("");
+    setSavingCategory(true);
+    try {
+      await onCreateCategory(newCategory);
+      setNewCategory("");
+      notify("دسته‌بندی جدید ثبت شد");
+    } catch (error) {
+      setCategoryError(error instanceof Error ? error.message : "ثبت دسته‌بندی ناموفق بود");
+    } finally {
+      setSavingCategory(false);
+    }
+  };
   const closeMenu = () => setMenuOpen(false);
 
   return (
@@ -82,6 +102,7 @@ export function AdminDashboard({
           <span>فضای کاری</span>
           <a className="active" href="#dashboard" onClick={closeMenu}><LayoutDashboard size={19} /> نمای کلی</a>
           <a href="#contents" onClick={closeMenu}><Images size={19} /> محتواها <b>{items.length.toLocaleString("fa-IR")}</b></a>
+          <a href="#categories" onClick={closeMenu}><Plus size={19} /> دسته‌بندی‌ها</a>
           <a href="#analytics" onClick={closeMenu}><BarChart3 size={19} /> آمار بازدید</a>
           <span>مدیریت سایت</span>
           <a href="#settings" onClick={closeMenu}><Settings size={19} /> تمام متن‌ها و تصاویر</a>
@@ -196,6 +217,26 @@ export function AdminDashboard({
             </div>
           </section>
 
+          <section className="category-manager" id="categories">
+            <div className="category-manager-heading">
+              <h2>مدیریت دسته‌بندی‌ها</h2>
+              <p>دسته‌بندی‌های ساخته‌شده در فرم انتشار و فیلترهای سایت نمایش داده می‌شوند.</p>
+            </div>
+            <form onSubmit={(event) => void addCategory(event)} className="category-manager-form">
+              <label htmlFor="new-site-category" className="sr-only">نام دسته‌بندی جدید</label>
+              <input id="new-site-category" value={newCategory} maxLength={60}
+                onChange={(event) => setNewCategory(event.target.value)}
+                placeholder="مثلاً: رویدادهای نجومی" required />
+              <button type="submit" disabled={savingCategory || newCategory.trim().length < 2}>
+                <Plus size={17} /> {savingCategory ? "در حال ثبت..." : "افزودن دسته‌بندی"}
+              </button>
+            </form>
+            {categoryError && <p className="category-error" role="alert">{categoryError}</p>}
+            <div className="category-manager-tags" aria-label="دسته‌بندی‌های موجود">
+              {categories.map((name) => <span key={name}>{name}</span>)}
+            </div>
+          </section>
+
           <SiteContentEditor content={content} onSave={onSaveContent} />
 
           <section className="manager-note">
@@ -205,7 +246,9 @@ export function AdminDashboard({
         </main>
       </div>
 
-      {showPublish && <PublishModal initial={editing ?? undefined} onClose={() => { setShowPublish(false); setEditing(null); }} onPublish={saveMedia} />}
+      {showPublish && <PublishModal initial={editing ?? undefined} categories={categories}
+        onCreateCategory={onCreateCategory}
+        onClose={() => { setShowPublish(false); setEditing(null); }} onPublish={saveMedia} />}
       {toast && <div className="toast-message" role="status"><CheckCircle2 size={18} />{toast}</div>}
     </div>
   );

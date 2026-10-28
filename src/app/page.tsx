@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { PublicHome } from "@/components/public-home";
-import { getMediaItems, getSiteContent } from "@/lib/cms-db";
+import { getMediaItems, getSiteContent, getSiteCategories } from "@/lib/cms-db";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +10,6 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const [initialItems, content] = await Promise.all([getMediaItems(), getSiteContent()]);
-  return <PublicHome initialItems={initialItems} content={content} />;
+  const [initialItems, content, categories] = await Promise.all([getMediaItems(), getSiteContent(), getSiteCategories()]);
+  return <PublicHome initialItems={initialItems} content={content} categories={categories} />;
 }

@@ -5,7 +5,7 @@ import { PublicGallery } from "@/components/public-gallery";
 import type { MediaItem } from "@/types/media";
 import type { SiteContent } from "@/lib/cms-content";
 
-export function PublicHome({ initialItems, content }: { initialItems: MediaItem[]; content: SiteContent }) {
+export function PublicHome({ initialItems, content, categories }: { initialItems: MediaItem[]; content: SiteContent; categories: string[] }) {
   const router = useRouter();
   const [items, setItems] = useState(initialItems);
   async function counter(id: string, action: "like" | "view") {
@@ -22,6 +22,7 @@ export function PublicHome({ initialItems, content }: { initialItems: MediaItem[
   return <PublicGallery
     items={items}
     content={content}
+    categories={categories}
     onLike={(id) => { void counter(id, "like"); }}
     onView={(id) => { void counter(id, "view"); }}
     onEnterAdmin={() => router.push("/admin")}

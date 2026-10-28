@@ -50,3 +50,21 @@ CREATE TABLE IF NOT EXISTS text_posts (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS text_posts_published_idx ON text_posts (published, created_at DESC);
+
+-- CMS-managed categories. The original media/text records remain unchanged.
+CREATE TABLE IF NOT EXISTS site_categories (
+  name text PRIMARY KEY CHECK (char_length(name) BETWEEN 2 AND 60 AND name = btrim(name)),
+  sort_order integer NOT NULL DEFAULT 100,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+INSERT INTO site_categories (name, sort_order) VALUES
+  ('سحابی‌ها', 10), ('کهکشان‌ها', 20), ('منظومه شمسی', 30),
+  ('ماه', 40), ('ویدیوها', 50), ('نوشته‌ها', 60)
+ON CONFLICT (name) DO NOTHING;
+INSERT INTO site_categories (name, sort_order)
+  SELECT category, 100 FROM (
+    SELECT DISTINCT category FROM media_items
+    UNION SELECT DISTINCT category FROM text_posts
+  ) previous
+  WHERE char_length(category) BETWEEN 2 AND 60 AND category = btrim(category)
+ON CONFLICT (name) DO NOTHING;

@@ -32,7 +32,7 @@ The website combines an editorial, responsive cosmic gallery with a custom, auth
 | 🌠 Public gallery | Responsive masonry-inspired layout, featured hero, category filters and search |
 | 🖼️ Media viewer | Full-size image viewer, supported YouTube embeds and MP4/WebM playback |
 | 💜 Engagement | Persisted like and view counters |
-| 📝 Content CMS | Edit site identity, hero, headlines, descriptions, gallery, about section, footer, links and SEO fields |
+| 🗂️ Categories | Create custom categories in Neon, choose them for images, videos and written posts, filter on public site |\n| 📝 Content CMS | Edit site identity, hero, headlines, descriptions, gallery, about section, footer, links and SEO fields |
 | 📷 Media & text CMS | Add, edit, remove, publish/unpublish photos, videos and standalone articles |
 | 🔔 Notifications | Database-backed CMS activity feed and unread status |
 | 🔐 Admin security | Server-side credential validation, signed HttpOnly cookie, session expiry, same-origin checks |
@@ -126,11 +126,11 @@ The existing published demo entries were imported into the initial Hamid Astrono
 
 **Legacy browser data:** If the previous CMS stored media in `localStorage`, sign in **using that same browser and origin**. A one-time **«انتقال رسانه قدیمی»** button appears if custom items are detected. Review the count and approve the import. Old browser data is left intact. Items that exceed upload limits must be migrated manually.
 
-**Database tables:** `site_content` (editable text/URLs), `media_items` (gallery records and counters), `cms_notifications` (action history), `text_posts` (independent text-only posts and optional cover image).
+**Database tables:** `site_content` (editable text/URLs), `media_items` (gallery records and counters), `cms_notifications` (action history), `text_posts` (independent written posts), `site_categories` (CMS-defined categories).
 
 ## 🎛️ CMS Guide
 
-Log in at `/admin/login`. The sidebar includes a media list and site-wide content editor. The top navigation includes **Back to Site**, **Notifications**, and **Logout**, also available on mobile. Choose **تصویر**, **ویدیو**, or **نوشته** under **انتشار محتوای جدید**. Text posts require a title and 10–10,000 characters of body text, accept paragraph breaks, and do not require a cover image. All content types support editing, drafts, publishing, deleting, and displaying in the public gallery. Existing items keep their type during edits. Content changes are saved immediately to Neon and visible on the public website.
+Log in at `/admin/login`. The sidebar includes a media list and site-wide content editor. The top navigation includes **Back to Site**, **Notifications**, and **Logout**, also available on mobile. Choose **تصویر**, **ویدیو**, or **نوشته** under **انتشار محتوای جدید**. Text posts require a title and 10–10,000 characters of body text, accept paragraph breaks, and do not require a cover image. Create categories directly within the publication modal via **«+ افزودن دسته‌بندی جدید»**, or in the CMS sidebar under **«دسته‌بندی‌ها»**. New categories are saved to Neon and immediately appear in the publication selector and public gallery filters, including for image, video and text. All content types support editing, drafts, publishing, deleting, and displaying in the public gallery. Existing items keep their type during edits. Content changes are saved immediately to Neon and visible on the public website.
 
 ### 📦 Media Storage Notes
 

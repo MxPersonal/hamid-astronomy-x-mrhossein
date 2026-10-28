@@ -1,6 +1,6 @@
 import "server-only";
 import { neon } from "@neondatabase/serverless";
-import { initialMedia } from "@/data/media";
+import { initialMedia, mediaCategories } from "@/data/media";
 import { SITE_DEFAULTS, type SiteContent, type CmsNotification } from "@/lib/cms-content";
 import type { MediaItem, NewMediaInput } from "@/types/media";
 
@@ -34,11 +34,34 @@ function asMedia(row: Record<string, unknown>): MediaItem {
 }
 
 function asTextPost(row: Record<string, unknown>): MediaItem {
-  return asMedia({ ...row, type: "text", category: "نوشته‌ها", video_url: null, duration: null, featured: false });
+  return asMedia({ ...row, type: "text", video_url: null, duration: null, featured: false });
 }
 
 function isTextPost(id: string) {
   return id.startsWith("text-");
+}
+
+export async function getSiteCategories(): Promise<string[]> {
+  if (!isDatabaseConfigured()) return mediaCategories.filter((category) => category !== "همه");
+  const rows = await db()`SELECT name FROM site_categories ORDER BY sort_order, created_at, name`;
+  return rows.map((row) => String(row.name));
+}
+
+export async function createSiteCategory(name: string): Promise<string | null> {
+  const normalized = name.normalize("NFC").trim().replace(/\\s+/g, " ");
+  const rows = await db()`
+    INSERT INTO site_categories (name)
+    VALUES (${normalized})
+    ON CONFLICT (name) DO NOTHING RETURNING name
+  `;
+  if (rows.length === 0) return null;
+  await notify("دسته‌بندی جدید ایجاد شد", normalized, "category");
+  return normalized;
+}
+
+export async function siteCategoryExists(name: string): Promise<boolean> {
+  const rows = await db()`SELECT 1 FROM site_categories WHERE name = ${name} LIMIT 1`;
+  return rows.length > 0;
 }
 
 export async function getSiteContent(): Promise<SiteContent> {
@@ -96,7 +119,7 @@ export async function createMedia(input: NewMediaInput): Promise<MediaItem> {
     const id = "text-" + crypto.randomUUID();
     const rows = await db()`INSERT INTO text_posts
       (id, title, description, category, image, captured_at, published)
-      VALUES (${id}, ${input.title}, ${input.description}, 'نوشته‌ها',
+      VALUES (${id}, ${input.title}, ${input.description}, ${input.category},
         ${input.image}, ${input.capturedAt}, ${input.published})
       RETURNING *`;
     await notify(input.published ? "نوشته جدید منتشر شد" : "پیش‌نویس نوشته ذخیره شد", input.title, "text");
@@ -117,7 +140,7 @@ export async function editMedia(id: string, input: NewMediaInput): Promise<Media
     if (input.type !== "text") return null;
     const rows = await db()`UPDATE text_posts SET
       title = ${input.title}, description = ${input.description},
-      image = ${input.image}, captured_at = ${input.capturedAt},
+      category = ${input.category}, image = ${input.image}, captured_at = ${input.capturedAt},
       published = ${input.published}
       WHERE id = ${id} RETURNING *`;
     if (!rows.length) return null;

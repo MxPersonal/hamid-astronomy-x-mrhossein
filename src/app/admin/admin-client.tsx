@@ -16,15 +16,17 @@ async function api<T>(path: string, method: string, body?: unknown): Promise<T> 
   return data as T;
 }
 
-export function AdminClient({ initialItems, initialContent, initialNotifications }: {
+export function AdminClient({ initialItems, initialContent, initialNotifications, initialCategories }: {
   initialItems: MediaItem[];
   initialContent: SiteContent;
   initialNotifications: CmsNotification[];
+  initialCategories: string[];
 }) {
   const router = useRouter();
   const [items, setItems] = useState(initialItems);
   const [content, setContent] = useState(initialContent);
   const [notifications, setNotifications] = useState(initialNotifications);
+  const [categories, setCategories] = useState(initialCategories);
   const [loggingOut, setLoggingOut] = useState(false);
   const [legacyItems, setLegacyItems] = useState<Array<{ id: string; data: NewMediaInput }>>([]);
   const [importingLegacy, setImportingLegacy] = useState(false);
@@ -92,6 +94,12 @@ export function AdminClient({ initialItems, initialContent, initialNotifications
     await refreshNotifications().catch(() => {});
     router.refresh();
   };
+  const createCategory = async (name: string): Promise<string> => {
+    const { category } = await api<{ category: string }>("/api/cms/categories", "POST", { name });
+    setCategories((existing) => existing.includes(category) ? existing : [...existing, category]);
+    await refreshNotifications().catch(() => {});
+    return category;
+  };
   const readNotifications = async () => {
     await api("/api/cms/notifications", "PATCH");
     await refreshNotifications();
@@ -134,6 +142,7 @@ export function AdminClient({ initialItems, initialContent, initialNotifications
   return (
     <AdminDashboard
       items={items} content={content} notifications={notifications}
+      categories={categories} onCreateCategory={createCategory}
       legacyCount={legacyItems.length} importingLegacy={importingLegacy}
       onImportLegacy={() => void importLegacy()}
       onAdd={add} onEdit={edit} onDelete={remove} onTogglePublished={togglePublished}

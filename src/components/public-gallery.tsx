@@ -8,7 +8,6 @@ import {
   Search,
   Sparkles,
 } from "lucide-react";
-import { mediaCategories } from "@/data/media";
 import type { MediaCategory, MediaItem } from "@/types/media";
 import type { SiteContent } from "@/lib/cms-content";
 import { MediaCard } from "./media-card";
@@ -21,6 +20,7 @@ interface PublicGalleryProps {
   onView: (id: string) => void;
   onEnterAdmin: () => void;
   content: SiteContent;
+  categories: string[];
 }
 
 export function PublicGallery({
@@ -29,6 +29,7 @@ export function PublicGallery({
   onView,
   onEnterAdmin,
   content,
+  categories,
 }: PublicGalleryProps) {
   const [activeCategory, setActiveCategory] = useState<"همه" | MediaCategory>(
     "همه",
@@ -137,7 +138,7 @@ export function PublicGallery({
           </div>
 
           <div className="gallery-filters" role="group" aria-label="فیلتر گالری">
-            {mediaCategories.map((category) => (
+            {["همه", ...categories].map((category) => (
               <button
                 type="button"
                 key={category}
