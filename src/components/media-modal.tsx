@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Link from "next/link";
+import { mediaPermalink } from "@/lib/seo";
 import { CalendarDays, Eye, Heart, Play, X } from "lucide-react";
 import { formatCompactNumber } from "@/lib/format";
 import type { MediaItem } from "@/types/media";
@@ -99,6 +101,9 @@ export function MediaModal({ item, onClose, onLike }: MediaModalProps) {
               <Heart size={16} /> {formatCompactNumber(item.likes)} پسند
             </button>
           </div>
+          <Link className="media-modal-permalink" href={mediaPermalink(item.id)} prefetch={false}>
+            مشاهده صفحه کامل و اشتراک‌گذاری
+          </Link>
         </div>
       </article>
     </div>
